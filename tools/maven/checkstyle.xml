@@ -41,7 +41,7 @@ under the License.
 
     <module name="TreeWalker">
         <module name="RegexpSinglelineJava">
-            <property name="format" value="^\s* +\s*\S"/>
+            <property name="format" value="^ *\t+ *\S"/>
             <property name="message"
                       value="Line has leading tab characters; indentation should be performed with spaces only."/>
             <property name="ignoreComments" value="true"/>
