@@ -2,7 +2,6 @@ flink-siddhi
 ============
 
 [![Travis CI](https://api.travis-ci.org/chermenin/flink-siddhi.svg)](https://travis-ci.org/chermenin/flink-siddhi)
-[//]: # ([![Clojars Project](https://img.shields.io/clojars/v/com.github.haoch/flink-siddhi_2.10.svg)](https://clojars.org/com.github.haoch/flink-siddhi_2.10))
 
 > A light-weight library to run [Siddhi CEP](https://github.com/wso2/siddhi) within [Apache Flink](https://github.com/apache/flink) streaming application.
 
