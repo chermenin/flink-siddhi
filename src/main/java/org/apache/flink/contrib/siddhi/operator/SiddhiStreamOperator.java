@@ -24,7 +24,7 @@ import org.apache.flink.contrib.siddhi.schema.StreamSchema;
 import org.apache.flink.contrib.siddhi.utils.SiddhiTypeFactory;
 import org.apache.flink.core.memory.DataInputView;
 import org.apache.flink.core.memory.DataOutputView;
-import org.apache.flink.streaming.runtime.streamrecord.MultiplexingStreamRecordSerializer;
+import org.apache.flink.streaming.runtime.streamrecord.StreamElementSerializer;
 import org.apache.flink.streaming.runtime.streamrecord.StreamElement;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 
@@ -41,9 +41,9 @@ public class SiddhiStreamOperator<IN, OUT> extends AbstractSiddhiOperator<Tuple2
     }
 
     @Override
-    protected MultiplexingStreamRecordSerializer<Tuple2<String, IN>> createStreamRecordSerializer(StreamSchema streamSchema, ExecutionConfig executionConfig) {
+    protected StreamElementSerializer<Tuple2<String, IN>> createStreamElementSerializer(StreamSchema streamSchema, ExecutionConfig executionConfig) {
         TypeInformation<Tuple2<String, IN>> tuple2TypeInformation = SiddhiTypeFactory.getStreamTupleTypeInformation((TypeInformation<IN>) streamSchema.getTypeInfo());
-        return new MultiplexingStreamRecordSerializer<>(tuple2TypeInformation.createSerializer(executionConfig));
+        return new StreamElementSerializer<>(tuple2TypeInformation.createSerializer(executionConfig));
     }
 
     @Override
@@ -62,7 +62,7 @@ public class SiddhiStreamOperator<IN, OUT> extends AbstractSiddhiOperator<Tuple2
         for (StreamRecord<Tuple2<String, IN>> record : queue) {
             String streamId = record.getValue().f0;
             dataOutputView.writeUTF(streamId);
-            this.getStreamRecordSerializer(streamId).serialize(record, dataOutputView);
+            this.getStreamElementSerializer(streamId).serialize(record, dataOutputView);
         }
     }
 
@@ -72,8 +72,8 @@ public class SiddhiStreamOperator<IN, OUT> extends AbstractSiddhiOperator<Tuple2
         PriorityQueue<StreamRecord<Tuple2<String, IN>>> priorityQueue = new PriorityQueue<>(sizeOfQueue);
         for (int i = 0; i < sizeOfQueue; i++) {
             String streamId = dataInputView.readUTF();
-            StreamElement streamElement = getStreamRecordSerializer(streamId).deserialize(dataInputView);
-            priorityQueue.offer(streamElement.<Tuple2<String, IN>>asRecord());
+            StreamElement streamElement = getStreamElementSerializer(streamId).deserialize(dataInputView);
+            priorityQueue.offer(streamElement.asRecord());
         }
         return priorityQueue;
     }

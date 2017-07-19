@@ -26,8 +26,6 @@ import org.apache.flink.core.memory.DataInputView;
 import org.apache.flink.core.memory.DataInputViewStreamWrapper;
 import org.apache.flink.core.memory.DataOutputView;
 import org.apache.flink.core.memory.DataOutputViewStreamWrapper;
-import org.apache.flink.runtime.state.CheckpointStreamFactory;
-import org.apache.flink.runtime.state.OperatorStateHandle;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.graph.StreamConfig;
 import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
@@ -35,7 +33,7 @@ import org.apache.flink.streaming.api.operators.OneInputStreamOperator;
 import org.apache.flink.streaming.api.operators.Output;
 import org.apache.flink.streaming.api.operators.StreamCheckpointedOperator;
 import org.apache.flink.streaming.api.watermark.Watermark;
-import org.apache.flink.streaming.runtime.streamrecord.MultiplexingStreamRecordSerializer;
+import org.apache.flink.streaming.runtime.streamrecord.StreamElementSerializer;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 import org.apache.flink.streaming.runtime.tasks.StreamTask;
 import org.slf4j.Logger;
@@ -51,7 +49,6 @@ import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
-import java.util.concurrent.RunnableFuture;
 
 /**
  * <h1>Siddhi Runtime Operator</h1>
@@ -90,7 +87,7 @@ public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOper
     private final SiddhiOperatorContext siddhiPlan;
     private final String executionExpression;
     private final boolean isProcessingTime;
-    private final Map<String, MultiplexingStreamRecordSerializer<IN>> streamRecordSerializers;
+    private final Map<String, StreamElementSerializer<IN>> streamElementSerializers;
 
     private transient SiddhiManager siddhiManager;
     private transient ExecutionPlanRuntime siddhiRuntime;
@@ -107,25 +104,25 @@ public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOper
         this.executionExpression = siddhiPlan.getFinalExecutionPlan();
         this.siddhiPlan = siddhiPlan;
         this.isProcessingTime = this.siddhiPlan.getTimeCharacteristic() == TimeCharacteristic.ProcessingTime;
-        this.streamRecordSerializers = new HashMap<>();
+        this.streamElementSerializers = new HashMap<>();
 
-        registerStreamRecordSerializers();
+        registerStreamElementSerializers();
     }
 
     /**
-     * Register StreamRecordSerializer based on {@link StreamSchema}
+     * Register StreamElementSerializer based on {@link StreamSchema}
      */
-    private void registerStreamRecordSerializers() {
+    private void registerStreamElementSerializers() {
         for (String streamId : this.siddhiPlan.getInputStreams()) {
-            streamRecordSerializers.put(streamId, createStreamRecordSerializer(this.siddhiPlan.getInputStreamSchema(streamId), this.siddhiPlan.getExecutionConfig()));
+            streamElementSerializers.put(streamId, createStreamElementSerializer(this.siddhiPlan.getInputStreamSchema(streamId), this.siddhiPlan.getExecutionConfig()));
         }
     }
 
-    protected abstract MultiplexingStreamRecordSerializer<IN> createStreamRecordSerializer(StreamSchema streamSchema, ExecutionConfig executionConfig);
+    protected abstract StreamElementSerializer<IN> createStreamElementSerializer(StreamSchema streamSchema, ExecutionConfig executionConfig);
 
-    protected MultiplexingStreamRecordSerializer<IN> getStreamRecordSerializer(String streamId) {
-        if (streamRecordSerializers.containsKey(streamId)) {
-            return streamRecordSerializers.get(streamId);
+    protected StreamElementSerializer<IN> getStreamElementSerializer(String streamId) {
+        if (streamElementSerializers.containsKey(streamId)) {
+            return streamElementSerializers.get(streamId);
         } else {
             throw new UndefinedStreamException("Stream " + streamId + " not defined");
         }
@@ -279,11 +276,6 @@ public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOper
         this.snapshotQueuerState(this.priorityQueue, new DataOutputViewStreamWrapper(oos));
 
         oos.flush();
-    }
-
-    @Override
-    public RunnableFuture<OperatorStateHandle> snapshotState(long checkpointId, long timestamp, CheckpointStreamFactory streamFactory) throws Exception {
-        return super.snapshotState(checkpointId, timestamp, streamFactory);
     }
 
     @Override
