@@ -29,17 +29,19 @@ under the License.
     </parent>
 
     <groupId>com.github.haoch</groupId>
-    <artifactId>flink-siddhi_2.10</artifactId>
+    <artifactId>flink-siddhi_${scala.version}</artifactId>
     <name>flink-siddhi</name>
-    <version>${parent.version}</version>
+    <version>${project.parent.version}</version>
 
     <packaging>jar</packaging>
 
     <properties>
         <siddhi.version>3.0.5</siddhi.version>
+        <scala.version>2.11</scala.version>
     </properties>
 
     <dependencies>
+
         <!-- core dependencies -->
         <dependency>
             <groupId>org.wso2.siddhi</groupId>
@@ -70,16 +72,15 @@ under the License.
         <!-- Core streaming API -->
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-streaming-java_2.10</artifactId>
+            <artifactId>flink-streaming-java_${scala.version}</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
 
         <!-- test dependencies -->
-
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-runtime_2.10</artifactId>
+            <artifactId>flink-runtime_${scala.version}</artifactId>
             <version>${project.version}</version>
             <type>test-jar</type>
             <scope>test</scope>
@@ -92,7 +93,7 @@ under the License.
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-test-utils_2.10</artifactId>
+            <artifactId>flink-test-utils_${scala.version}</artifactId>
             <version>${project.version}</version>
             <scope>test</scope>
             <exclusions>
@@ -104,7 +105,7 @@ under the License.
         </dependency>
         <dependency>
             <groupId>org.apache.flink</groupId>
-            <artifactId>flink-scala_2.10</artifactId>
+            <artifactId>flink-scala_${scala.version}</artifactId>
             <version>${project.version}</version>
             <exclusions>
                 <exclusion>  <!-- declare the exclusion here -->
@@ -113,8 +114,6 @@ under the License.
                 </exclusion>
             </exclusions>
         </dependency>
-
-
     </dependencies>
 
     <repositories>
@@ -146,9 +145,24 @@ under the License.
             <name>WSO2 Maven2 Repository</name>
             <url>http://maven.wso2.org/nexus/content/repositories/releases/</url>
         </repository>
-
-
     </repositories>
+
+    <profiles>
+
+        <!-- Profile to switch to Scala Version 2.10 -->
+        <profile>
+            <id>scala-2.10</id>
+            <activation>
+                <property>
+                    <name>scala-2.10</name>
+                </property>
+            </activation>
+            <properties>
+                <scala.version>2.10</scala.version>
+            </properties>
+        </profile>
+    </profiles>
+
     <pluginRepositories>
         <pluginRepository>
             <id>central</id>
@@ -161,7 +175,6 @@ under the License.
             </snapshots>
         </pluginRepository>
     </pluginRepositories>
-
 
     <build>
         <pluginManagement>
@@ -192,9 +205,9 @@ under the License.
                         </execution>
                     </executions>
                 </plugin>
-
             </plugins>
         </pluginManagement>
+
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
