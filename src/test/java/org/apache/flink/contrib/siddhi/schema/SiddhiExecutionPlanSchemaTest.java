@@ -17,6 +17,10 @@
 
 package org.apache.flink.contrib.siddhi.schema;
 
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.PojoTypeInfo;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
@@ -25,8 +29,6 @@ import org.junit.Test;
 import org.wso2.siddhi.query.api.definition.Attribute;
 import org.wso2.siddhi.query.api.definition.StreamDefinition;
 
-import static org.junit.Assert.*;
-
 public class SiddhiExecutionPlanSchemaTest {
 
     @Test
@@ -34,17 +36,21 @@ public class SiddhiExecutionPlanSchemaTest {
         TypeInformation<Event> typeInfo = TypeExtractor.createTypeInfo(Event.class);
         assertTrue("Type information should be PojoTypeInfo", typeInfo instanceof PojoTypeInfo);
 
-        SiddhiStreamSchema<Event> schema = new SiddhiStreamSchema<>(typeInfo, "id", "timestamp", "name", "price");
+        SiddhiStreamSchema<Event>
+            schema =
+            new SiddhiStreamSchema<>(typeInfo, "id", "timestamp", "name", "price");
         assertEquals(4, schema.getFieldIndexes().length);
 
         StreamDefinition streamDefinition = schema.getStreamDefinition("test_stream");
-        assertArrayEquals(new String[]{"id", "timestamp", "name", "price"}, streamDefinition.getAttributeNameArray());
+        assertArrayEquals(new String[]{"id", "timestamp", "name", "price"},
+                          streamDefinition.getAttributeNameArray());
 
         assertEquals(Attribute.Type.INT, streamDefinition.getAttributeType("id"));
         assertEquals(Attribute.Type.LONG, streamDefinition.getAttributeType("timestamp"));
         assertEquals(Attribute.Type.STRING, streamDefinition.getAttributeType("name"));
         assertEquals(Attribute.Type.DOUBLE, streamDefinition.getAttributeType("price"));
 
-        assertEquals("define stream test_stream (id int,timestamp long,name string,price double);", schema.getStreamDefinitionExpression("test_stream"));
+        assertEquals("define stream test_stream (id int,timestamp long,name string,price double);",
+                     schema.getStreamDefinitionExpression("test_stream"));
     }
 }

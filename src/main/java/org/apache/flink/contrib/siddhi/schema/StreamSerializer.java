@@ -28,6 +28,7 @@ import java.lang.reflect.Field;
  * Stream Serialization and Field Extraction Methods.
  */
 public class StreamSerializer<T> implements Serializable {
+
     private final StreamSchema<T> schema;
 
     public StreamSerializer(StreamSchema<T> schema) {
@@ -36,7 +37,7 @@ public class StreamSerializer<T> implements Serializable {
 
     public Object[] getRow(T input) {
         Preconditions.checkArgument(input.getClass() == schema.getTypeInfo().getTypeClass()
-                , "Invalid input type: " + input + ", expected: " + schema.getTypeInfo());
+            , "Invalid input type: " + input + ", expected: " + schema.getTypeInfo());
 
         Object[] data;
         if (schema.isAtomicType()) {
@@ -53,16 +54,20 @@ public class StreamSerializer<T> implements Serializable {
                 data[i] = getFieldValue(schema.getFieldNames()[i], input);
             }
         } else {
-            throw new IllegalArgumentException("Failed to get field values from " + schema.getTypeInfo());
+            throw new IllegalArgumentException(
+                "Failed to get field values from " + schema.getTypeInfo());
         }
         return data;
     }
 
     private Object getFieldValue(String fieldName, T input) {
         // TODO: Cache Field Accessor
-        Field field = TypeExtractor.getDeclaredField(schema.getTypeInfo().getTypeClass(), fieldName);
+        Field
+            field =
+            TypeExtractor.getDeclaredField(schema.getTypeInfo().getTypeClass(), fieldName);
         if (field == null) {
-            throw new IllegalArgumentException(fieldName + " is not found in " + schema.getTypeInfo());
+            throw new IllegalArgumentException(
+                fieldName + " is not found in " + schema.getTypeInfo());
         }
         if (!field.isAccessible()) {
             field.setAccessible(true);

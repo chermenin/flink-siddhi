@@ -68,7 +68,8 @@
             <parameter name="regex"><![CDATA[[A-Z][A-Za-z]*]]></parameter>
         </parameters>
     </check>
-    <check level="error" class="org.scalastyle.scalariform.PackageObjectNamesChecker" enabled="true">
+    <check level="error" class="org.scalastyle.scalariform.PackageObjectNamesChecker"
+           enabled="true">
         <parameters>
             <parameter name="regex"><![CDATA[^[a-z][A-Za-z]*$]]></parameter>
         </parameters>
@@ -89,8 +90,10 @@
     <!--   <parameter name="ignore"><![CDATA[-1,0,1,2,3]]></parameter> -->
     <!--  </parameters> -->
     <!-- </check> -->
-    <check level="error" class="org.scalastyle.scalariform.NoWhitespaceBeforeLeftBracketChecker" enabled="false"/>
-    <check level="error" class="org.scalastyle.scalariform.NoWhitespaceAfterLeftBracketChecker" enabled="false"/>
+    <check level="error" class="org.scalastyle.scalariform.NoWhitespaceBeforeLeftBracketChecker"
+           enabled="false"/>
+    <check level="error" class="org.scalastyle.scalariform.NoWhitespaceAfterLeftBracketChecker"
+           enabled="false"/>
     <!-- <check level="error" class="org.scalastyle.scalariform.ReturnChecker" enabled="true"></check> -->
     <!-- <check level="error" class="org.scalastyle.scalariform.NullChecker" enabled="true"></check> -->
     <!-- <check level="error" class="org.scalastyle.scalariform.NoCloneChecker" enabled="true"></check> -->
@@ -113,7 +116,8 @@
     <!--  </parameters> -->
     <!-- </check> -->
     <check level="error" class="org.scalastyle.scalariform.UppercaseLChecker" enabled="true"/>
-    <check level="error" class="org.scalastyle.scalariform.SimplifyBooleanExpressionChecker" enabled="false"/>
+    <check level="error" class="org.scalastyle.scalariform.SimplifyBooleanExpressionChecker"
+           enabled="false"/>
     <check level="error" class="org.scalastyle.scalariform.IfBraceChecker" enabled="true">
         <parameters>
             <parameter name="singleLineAllowed"><![CDATA[true]]></parameter>

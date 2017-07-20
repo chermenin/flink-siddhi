@@ -34,11 +34,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Siddhi Type Utils for conversion between Java Type, Siddhi Field Type, Stream Definition, and Flink Type Information.
+ * Siddhi Type Utils for conversion between Java Type, Siddhi Field Type, Stream Definition, and
+ * Flink Type Information.
  */
 public class SiddhiTypeFactory {
+
     private final static Map<Class<?>, Attribute.Type> JAVA_TO_SIDDHI_TYPE = new HashMap<>();
     private final static Map<Attribute.Type, Class<?>> SIDDHI_TO_JAVA_TYPE = new HashMap<>();
+    @SuppressWarnings("unchecked")
+    private static final TypeInformation<?>
+        MAP_TYPE_INFORMATION =
+        TypeExtractor.createTypeInfo(new HashMap<String, Object>().getClass());
 
     static {
         registerType(String.class, Attribute.Type.STRING);
@@ -56,7 +62,9 @@ public class SiddhiTypeFactory {
 
     public static void registerType(Class<?> javaType, Attribute.Type siddhiType) {
         if (JAVA_TO_SIDDHI_TYPE.containsKey(javaType)) {
-            throw new IllegalArgumentException("Java type: " + javaType + " or siddhi type: " + siddhiType + " were already registered");
+            throw new IllegalArgumentException(
+                "Java type: " + javaType + " or siddhi type: " + siddhiType
+                + " were already registered");
         }
         JAVA_TO_SIDDHI_TYPE.put(javaType, siddhiType);
         SIDDHI_TO_JAVA_TYPE.put(siddhiType, javaType);
@@ -84,7 +92,8 @@ public class SiddhiTypeFactory {
         }
     }
 
-    public static <T extends Tuple> TypeInformation<T> getTupleTypeInformation(AbstractDefinition definition) {
+    public static <T extends Tuple> TypeInformation<T> getTupleTypeInformation(
+        AbstractDefinition definition) {
         int tupleSize = definition.getAttributeList().size();
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append("Tuple").append(tupleSize);
@@ -102,12 +111,10 @@ public class SiddhiTypeFactory {
         }
     }
 
-    public static <T extends Tuple> TypeInformation<T> getTupleTypeInformation(String executionPlan, String streamId) {
+    public static <T extends Tuple> TypeInformation<T> getTupleTypeInformation(String executionPlan,
+                                                                               String streamId) {
         return getTupleTypeInformation(getStreamDefinition(executionPlan, streamId));
     }
-
-    @SuppressWarnings("unchecked")
-    private static final TypeInformation<?> MAP_TYPE_INFORMATION = TypeExtractor.createTypeInfo(new HashMap<String, Object>().getClass());
 
     public static TypeInformation<Map<String, Object>> getMapTypeInformation() {
         return (TypeInformation<Map<String, Object>>) MAP_TYPE_INFORMATION;
@@ -123,12 +130,15 @@ public class SiddhiTypeFactory {
 
     public static Class<?> getJavaType(Attribute.Type attributeType) {
         if (!SIDDHI_TO_JAVA_TYPE.containsKey(attributeType)) {
-            throw new IllegalArgumentException("Unable to get java type for siddhi attribute type: " + attributeType);
+            throw new IllegalArgumentException(
+                "Unable to get java type for siddhi attribute type: " + attributeType);
         }
         return SIDDHI_TO_JAVA_TYPE.get(attributeType);
     }
 
-    public static <T> TypeInformation<Tuple2<String, T>> getStreamTupleTypeInformation(TypeInformation<T> typeInformation) {
-        return TypeInfoParser.parse("Tuple2<String," + typeInformation.getTypeClass().getName() + ">");
+    public static <T> TypeInformation<Tuple2<String, T>> getStreamTupleTypeInformation(
+        TypeInformation<T> typeInformation) {
+        return TypeInfoParser
+            .parse("Tuple2<String," + typeInformation.getTypeClass().getName() + ">");
     }
 }

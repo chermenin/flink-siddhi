@@ -36,12 +36,13 @@ import java.io.Serializable;
  * @param <T> Stream element type
  */
 public class StreamSchema<T> implements Serializable {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(StreamSchema.class);
     private final TypeInformation<T> typeInfo;
     private final int[] fieldIndexes;
     private final String[] fieldNames;
-    private TypeInformation[] fieldTypes;
     private final StreamSerializer<T> streamSerializer;
+    private TypeInformation[] fieldTypes;
     private TypeSerializer<T> typeSerializer;
 
     public StreamSchema(TypeInformation<T> typeInfo, String... fieldNames) {
@@ -95,7 +96,8 @@ public class StreamSchema<T> implements Serializable {
             for (int i = 0; i < fieldNames.length; i++) {
                 int index = ((PojoTypeInfo) typeInfo).getFieldIndex(fieldNames[i]);
                 if (index < 0) {
-                    throw new IllegalArgumentException(fieldNames[i] + " is not a field of type " + typeInfo);
+                    throw new IllegalArgumentException(
+                        fieldNames[i] + " is not a field of type " + typeInfo);
                 }
                 result[i] = index;
             }
@@ -104,7 +106,8 @@ public class StreamSchema<T> implements Serializable {
             for (int i = 0; i < fieldNames.length; i++) {
                 int index = ((CaseClassTypeInfo) typeInfo).getFieldIndex(fieldNames[i]);
                 if (index < 0) {
-                    throw new IllegalArgumentException(fieldNames[i] + " is not a field of type " + typeInfo);
+                    throw new IllegalArgumentException(
+                        fieldNames[i] + " is not a field of type " + typeInfo);
                 }
                 result[i] = index;
             }
@@ -115,7 +118,8 @@ public class StreamSchema<T> implements Serializable {
     }
 
 
-    private <E> TypeInformation[] getFieldTypes(TypeInformation<E> typeInfo, int[] fieldIndexes, String[] fieldNames) {
+    private <E> TypeInformation[] getFieldTypes(TypeInformation<E> typeInfo, int[] fieldIndexes,
+                                                String[] fieldNames) {
         TypeInformation[] fieldTypes;
         if (isCompositeType()) {
             CompositeType cType = (CompositeType) typeInfo;
@@ -123,7 +127,7 @@ public class StreamSchema<T> implements Serializable {
 //				throw new IllegalArgumentException("Arity of type (" + cType.getFieldNames().length+ ") " +
 //					"not equal to number of field names " + fieldNames.length + ".");
                 LOGGER.warn("Arity of type (" + cType.getFieldNames().length + ") " +
-                        "not equal to number of field names " + fieldNames.length + ".");
+                            "not equal to number of field names " + fieldNames.length + ".");
             }
             fieldTypes = new TypeInformation[fieldIndexes.length];
             for (int i = 0; i < fieldIndexes.length; i++) {
@@ -132,12 +136,12 @@ public class StreamSchema<T> implements Serializable {
         } else if (isAtomicType()) {
             if (fieldIndexes.length != 1 || fieldIndexes[0] != 0) {
                 throw new IllegalArgumentException(
-                        "Non-composite input type may have only a single field and its index must be 0.");
+                    "Non-composite input type may have only a single field and its index must be 0.");
             }
             fieldTypes = new TypeInformation[]{typeInfo};
         } else {
             throw new IllegalArgumentException(
-                    "Illegal input type info"
+                "Illegal input type info"
             );
         }
         return fieldTypes;

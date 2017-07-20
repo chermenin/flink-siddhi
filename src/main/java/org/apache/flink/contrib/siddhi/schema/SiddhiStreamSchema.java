@@ -33,20 +33,23 @@ import java.util.List;
  * @param <T> Siddhi stream element type
  */
 public class SiddhiStreamSchema<T> extends StreamSchema<T> {
+
     private static final String DEFINE_STREAM_TEMPLATE = "define stream %s (%s);";
 
     public SiddhiStreamSchema(TypeInformation<T> typeInfo, String... fieldNames) {
         super(typeInfo, fieldNames);
     }
 
-    public SiddhiStreamSchema(TypeInformation<T> typeInfo, int[] fieldIndexes, String[] fieldNames) {
+    public SiddhiStreamSchema(TypeInformation<T> typeInfo, int[] fieldIndexes,
+                              String[] fieldNames) {
         super(typeInfo, fieldIndexes, fieldNames);
     }
 
     public StreamDefinition getStreamDefinition(String streamId) {
         StreamDefinition streamDefinition = StreamDefinition.id(streamId);
         for (int i = 0; i < getFieldNames().length; i++) {
-            streamDefinition.attribute(getFieldNames()[i], SiddhiTypeFactory.getAttributeType(getFieldTypes()[i]));
+            streamDefinition.attribute(getFieldNames()[i],
+                                       SiddhiTypeFactory.getAttributeType(getFieldTypes()[i]));
         }
         return streamDefinition;
     }
@@ -55,9 +58,11 @@ public class SiddhiStreamSchema<T> extends StreamSchema<T> {
         List<String> columns = new ArrayList<>();
         Preconditions.checkNotNull(streamDefinition, "StreamDefinition is null");
         for (Attribute attribute : streamDefinition.getAttributeList()) {
-            columns.add(String.format("%s %s", attribute.getName(), attribute.getType().toString().toLowerCase()));
+            columns.add(String.format("%s %s", attribute.getName(),
+                                      attribute.getType().toString().toLowerCase()));
         }
-        return String.format(DEFINE_STREAM_TEMPLATE, streamDefinition.getId(), StringUtils.join(columns, ","));
+        return String.format(DEFINE_STREAM_TEMPLATE, streamDefinition.getId(),
+                             StringUtils.join(columns, ","));
     }
 
     public String getStreamDefinitionExpression(String streamId) {
@@ -65,8 +70,10 @@ public class SiddhiStreamSchema<T> extends StreamSchema<T> {
         List<String> columns = new ArrayList<>();
         Preconditions.checkNotNull(streamDefinition, "StreamDefinition is null");
         for (Attribute attribute : streamDefinition.getAttributeList()) {
-            columns.add(String.format("%s %s", attribute.getName(), attribute.getType().toString().toLowerCase()));
+            columns.add(String.format("%s %s", attribute.getName(),
+                                      attribute.getType().toString().toLowerCase()));
         }
-        return String.format(DEFINE_STREAM_TEMPLATE, streamDefinition.getId(), StringUtils.join(columns, ","));
+        return String.format(DEFINE_STREAM_TEMPLATE, streamDefinition.getId(),
+                             StringUtils.join(columns, ","));
     }
 }

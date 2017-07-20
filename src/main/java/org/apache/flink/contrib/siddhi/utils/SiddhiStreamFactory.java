@@ -28,7 +28,9 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 public class SiddhiStreamFactory {
 
     @SuppressWarnings("unchecked")
-    public static <OUT> DataStream<OUT> createDataStream(SiddhiOperatorContext context, DataStream<Tuple2<String, Object>> namedStream) {
-        return namedStream.transform(context.getName(), context.getOutputStreamType(), new SiddhiStreamOperator(context));
+    public static <OUT> DataStream<OUT> createDataStream(SiddhiOperatorContext context,
+                                                         DataStream<Tuple2<String, Object>> namedStream) {
+        return namedStream.transform(context.getName(), context.getOutputStreamType(),
+                                     new SiddhiStreamOperator(context));
     }
 }

@@ -29,17 +29,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * <p>
- * Siddhi CEP Environment, provides utility methods to
- * <p>
- * <ul>
- * <li>Initialize SiddhiCEP environment based on {@link StreamExecutionEnvironment}</li>
- * <li>Register {@link SiddhiStream} with field-based StreamSchema and bind with physical source {@link DataStream}</li>
- * <li>Define rich-featured Siddhi CEP execution plan with SQL-Like query for SiddhiStreamOperator</li>
- * <li>Transform and connect source DataStream to SiddhiStreamOperator</li>
- * <li>Register customizable siddhi plugins to extend built-in CEP functions</li>
- * </ul>
- * </p>
+ * <p> Siddhi CEP Environment, provides utility methods to <p> <ul> <li>Initialize SiddhiCEP
+ * environment based on {@link StreamExecutionEnvironment}</li> <li>Register {@link SiddhiStream}
+ * with field-based StreamSchema and bind with physical source {@link DataStream}</li> <li>Define
+ * rich-featured Siddhi CEP execution plan with SQL-Like query for SiddhiStreamOperator</li>
+ * <li>Transform and connect source DataStream to SiddhiStreamOperator</li> <li>Register
+ * customizable siddhi plugins to extend built-in CEP functions</li> </ul> </p>
  *
  * @see SiddhiStream
  * @see org.apache.flink.contrib.siddhi.schema.StreamSchema
@@ -47,6 +42,7 @@ import java.util.Map;
  */
 @PublicEvolving
 public class SiddhiCEP {
+
     private final StreamExecutionEnvironment executionEnvironment;
     private final Map<String, DataStream<?>> dataStreams = new HashMap<>();
     private final Map<String, SiddhiStreamSchema<?>> dataStreamSchemas = new HashMap<>();
@@ -57,6 +53,39 @@ public class SiddhiCEP {
      */
     private SiddhiCEP(StreamExecutionEnvironment streamExecutionEnvironment) {
         this.executionEnvironment = streamExecutionEnvironment;
+    }
+
+    /**
+     * Define siddhi stream with streamId, source <code>DataStream</code> and stream schema, and
+     * select as initial source stream to connect to siddhi operator.
+     *
+     * @param streamId   Unique siddhi streamId
+     * @param dataStream DataStream to bind to the siddhi stream.
+     * @param fieldNames Siddhi stream schema field names
+     * @see #registerStream(String, DataStream, String...)
+     * @see #from(String)
+     */
+    public static <T> SiddhiStream.SingleSiddhiStream<T> define(String streamId,
+                                                                DataStream<T> dataStream,
+                                                                String... fieldNames) {
+        Preconditions.checkNotNull(streamId, "streamId");
+        Preconditions.checkNotNull(dataStream, "dataStream");
+        Preconditions.checkNotNull(fieldNames, "fieldNames");
+        SiddhiCEP
+            environment =
+            SiddhiCEP.getSiddhiEnvironment(dataStream.getExecutionEnvironment());
+        return environment.from(streamId, dataStream, fieldNames);
+    }
+
+    /**
+     * Create new SiddhiCEP instance.
+     *
+     * @param streamExecutionEnvironment StreamExecutionEnvironment
+     * @return New SiddhiCEP instance.
+     */
+    public static SiddhiCEP getSiddhiEnvironment(
+        StreamExecutionEnvironment streamExecutionEnvironment) {
+        return new SiddhiCEP(streamExecutionEnvironment);
     }
 
     /**
@@ -92,7 +121,8 @@ public class SiddhiCEP {
     }
 
     /**
-     * Check whether given streamId has been defined, if not, throw {@link UndefinedStreamException}
+     * Check whether given streamId has been defined, if not, throw {@link
+     * UndefinedStreamException}
      *
      * @param streamId Siddhi streamId to check.
      * @throws UndefinedStreamException throws if given streamId is not defined
@@ -105,31 +135,14 @@ public class SiddhiCEP {
     }
 
     /**
-     * Define siddhi stream with streamId, source <code>DataStream</code> and stream schema,
-     * and select as initial source stream to connect to siddhi operator.
-     *
-     * @param streamId   Unique siddhi streamId
-     * @param dataStream DataStream to bind to the siddhi stream.
-     * @param fieldNames Siddhi stream schema field names
-     * @see #registerStream(String, DataStream, String...)
-     * @see #from(String)
-     */
-    public static <T> SiddhiStream.SingleSiddhiStream<T> define(String streamId, DataStream<T> dataStream, String... fieldNames) {
-        Preconditions.checkNotNull(streamId, "streamId");
-        Preconditions.checkNotNull(dataStream, "dataStream");
-        Preconditions.checkNotNull(fieldNames, "fieldNames");
-        SiddhiCEP environment = SiddhiCEP.getSiddhiEnvironment(dataStream.getExecutionEnvironment());
-        return environment.from(streamId, dataStream, fieldNames);
-    }
-
-    /**
-     * Register stream with unique <code>streaId</code>, source <code>dataStream</code> and schema fields,
-     * and select the registered stream as initial stream to connect to Siddhi Runtime.
+     * Register stream with unique <code>streaId</code>, source <code>dataStream</code> and schema
+     * fields, and select the registered stream as initial stream to connect to Siddhi Runtime.
      *
      * @see #registerStream(String, DataStream, String...)
      * @see #from(String)
      */
-    public <T> SiddhiStream.SingleSiddhiStream<T> from(String streamId, DataStream<T> dataStream, String... fieldNames) {
+    public <T> SiddhiStream.SingleSiddhiStream<T> from(String streamId, DataStream<T> dataStream,
+                                                       String... fieldNames) {
         Preconditions.checkNotNull(streamId, "streamId");
         Preconditions.checkNotNull(dataStream, "dataStream");
         Preconditions.checkNotNull(fieldNames, "fieldNames");
@@ -151,11 +164,14 @@ public class SiddhiCEP {
     /**
      * Select one stream and union other streams by streamId to connect to Siddhi Stream Operator.
      *
-     * @param firstStreamId  First siddhi streamId, which should be predefined in SiddhiCEP context.
-     * @param unionStreamIds Other siddhi streamIds to union, which should be predefined in SiddhiCEP context.
+     * @param firstStreamId  First siddhi streamId, which should be predefined in SiddhiCEP
+     *                       context.
+     * @param unionStreamIds Other siddhi streamIds to union, which should be predefined in
+     *                       SiddhiCEP context.
      * @return The UnionSiddhiStream Builder
      */
-    public <T> SiddhiStream.UnionSiddhiStream<T> union(String firstStreamId, String... unionStreamIds) {
+    public <T> SiddhiStream.UnionSiddhiStream<T> union(String firstStreamId,
+                                                       String... unionStreamIds) {
         Preconditions.checkNotNull(firstStreamId, "firstStreamId");
         Preconditions.checkNotNull(unionStreamIds, "unionStreamIds");
         return new SiddhiStream.SingleSiddhiStream<T>(firstStreamId, this).union(unionStreamIds);
@@ -168,7 +184,8 @@ public class SiddhiCEP {
      * @param dataStream DataStream to bind to the siddhi stream.
      * @param fieldNames Siddhi stream schema field names
      */
-    public <T> void registerStream(final String streamId, DataStream<T> dataStream, String... fieldNames) {
+    public <T> void registerStream(final String streamId, DataStream<T> dataStream,
+                                   String... fieldNames) {
         Preconditions.checkNotNull(streamId, "streamId");
         Preconditions.checkNotNull(dataStream, "dataStream");
         Preconditions.checkNotNull(fieldNames, "fieldNames");
@@ -177,7 +194,8 @@ public class SiddhiCEP {
         }
         dataStreams.put(streamId, dataStream);
         SiddhiStreamSchema<T> schema = new SiddhiStreamSchema<>(dataStream.getType(), fieldNames);
-        schema.setTypeSerializer(schema.getTypeInfo().createSerializer(dataStream.getExecutionConfig()));
+        schema.setTypeSerializer(
+            schema.getTypeInfo().createSerializer(dataStream.getExecutionConfig()));
         dataStreamSchemas.put(streamId, schema);
     }
 
@@ -197,7 +215,8 @@ public class SiddhiCEP {
      */
     public void registerExtension(String extensionName, Class<?> extensionClass) {
         if (extensions.containsKey(extensionName)) {
-            throw new IllegalArgumentException("Extension named " + extensionName + " already registered");
+            throw new IllegalArgumentException(
+                "Extension named " + extensionName + " already registered");
         }
         extensions.put(extensionName, extensionClass);
     }
@@ -214,15 +233,5 @@ public class SiddhiCEP {
         } else {
             throw new UndefinedStreamException("Undefined stream " + streamId);
         }
-    }
-
-    /**
-     * Create new SiddhiCEP instance.
-     *
-     * @param streamExecutionEnvironment StreamExecutionEnvironment
-     * @return New SiddhiCEP instance.
-     */
-    public static SiddhiCEP getSiddhiEnvironment(StreamExecutionEnvironment streamExecutionEnvironment) {
-        return new SiddhiCEP(streamExecutionEnvironment);
     }
 }

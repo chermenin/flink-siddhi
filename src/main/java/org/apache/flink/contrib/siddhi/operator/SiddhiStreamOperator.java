@@ -24,8 +24,8 @@ import org.apache.flink.contrib.siddhi.schema.StreamSchema;
 import org.apache.flink.contrib.siddhi.utils.SiddhiTypeFactory;
 import org.apache.flink.core.memory.DataInputView;
 import org.apache.flink.core.memory.DataOutputView;
-import org.apache.flink.streaming.runtime.streamrecord.StreamElementSerializer;
 import org.apache.flink.streaming.runtime.streamrecord.StreamElement;
+import org.apache.flink.streaming.runtime.streamrecord.StreamElementSerializer;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
 
 import java.io.IOException;
@@ -41,14 +41,23 @@ public class SiddhiStreamOperator<IN, OUT> extends AbstractSiddhiOperator<Tuple2
     }
 
     @Override
-    protected StreamElementSerializer<Tuple2<String, IN>> createStreamElementSerializer(StreamSchema streamSchema, ExecutionConfig executionConfig) {
-        TypeInformation<Tuple2<String, IN>> tuple2TypeInformation = SiddhiTypeFactory.getStreamTupleTypeInformation((TypeInformation<IN>) streamSchema.getTypeInfo());
-        return new StreamElementSerializer<>(tuple2TypeInformation.createSerializer(executionConfig));
+    protected StreamElementSerializer<Tuple2<String, IN>> createStreamElementSerializer(
+        StreamSchema streamSchema, ExecutionConfig executionConfig) {
+        TypeInformation<Tuple2<String, IN>>
+            tuple2TypeInformation =
+            SiddhiTypeFactory
+                .getStreamTupleTypeInformation((TypeInformation<IN>) streamSchema.getTypeInfo());
+        return new StreamElementSerializer<>(
+            tuple2TypeInformation.createSerializer(executionConfig));
     }
 
     @Override
-    protected void processEvent(String streamId, StreamSchema<Tuple2<String, IN>> schema, Tuple2<String, IN> value, long timestamp) throws InterruptedException {
-        send(value.f0, getSiddhiPlan().getInputStreamSchema(value.f0).getStreamSerializer().getRow(value.f1), timestamp);
+    protected void processEvent(String streamId, StreamSchema<Tuple2<String, IN>> schema,
+                                Tuple2<String, IN> value, long timestamp)
+        throws InterruptedException {
+        send(value.f0,
+             getSiddhiPlan().getInputStreamSchema(value.f0).getStreamSerializer().getRow(value.f1),
+             timestamp);
     }
 
     @Override
@@ -57,7 +66,8 @@ public class SiddhiStreamOperator<IN, OUT> extends AbstractSiddhiOperator<Tuple2
     }
 
     @Override
-    protected void snapshotQueuerState(PriorityQueue<StreamRecord<Tuple2<String, IN>>> queue, DataOutputView dataOutputView) throws IOException {
+    protected void snapshotQueuerState(PriorityQueue<StreamRecord<Tuple2<String, IN>>> queue,
+                                       DataOutputView dataOutputView) throws IOException {
         dataOutputView.writeInt(queue.size());
         for (StreamRecord<Tuple2<String, IN>> record : queue) {
             String streamId = record.getValue().f0;
@@ -67,12 +77,17 @@ public class SiddhiStreamOperator<IN, OUT> extends AbstractSiddhiOperator<Tuple2
     }
 
     @Override
-    protected PriorityQueue<StreamRecord<Tuple2<String, IN>>> restoreQueuerState(DataInputView dataInputView) throws IOException {
+    protected PriorityQueue<StreamRecord<Tuple2<String, IN>>> restoreQueuerState(
+        DataInputView dataInputView) throws IOException {
         int sizeOfQueue = dataInputView.readInt();
-        PriorityQueue<StreamRecord<Tuple2<String, IN>>> priorityQueue = new PriorityQueue<>(sizeOfQueue);
+        PriorityQueue<StreamRecord<Tuple2<String, IN>>>
+            priorityQueue =
+            new PriorityQueue<>(sizeOfQueue);
         for (int i = 0; i < sizeOfQueue; i++) {
             String streamId = dataInputView.readUTF();
-            StreamElement streamElement = getStreamElementSerializer(streamId).deserialize(dataInputView);
+            StreamElement
+                streamElement =
+                getStreamElementSerializer(streamId).deserialize(dataInputView);
             priorityQueue.offer(streamElement.asRecord());
         }
         return priorityQueue;

@@ -47,8 +47,8 @@ public class SiddhiSyntaxTest {
     @Test
     public void testSimplePlan() throws InterruptedException {
         ExecutionPlanRuntime runtime = siddhiManager.createExecutionPlanRuntime(
-                "define stream inStream (name string, value double);"
-                        + "from inStream insert into outStream");
+            "define stream inStream (name string, value double);"
+            + "from inStream insert into outStream");
         runtime.start();
 
         final List<Object[]> received = new ArrayList<>(3);

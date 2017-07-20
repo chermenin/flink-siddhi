@@ -39,6 +39,7 @@ import java.util.Map;
  * according to output {@link TypeInformation} and siddhi schema {@link AbstractDefinition}
  */
 public class StreamOutputHandler<R> extends StreamCallback {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(StreamOutputHandler.class);
 
     private final AbstractDefinition definition;
@@ -46,7 +47,8 @@ public class StreamOutputHandler<R> extends StreamCallback {
     private final TypeInformation<R> typeInfo;
     private final ObjectMapper objectMapper;
 
-    public StreamOutputHandler(TypeInformation<R> typeInfo, AbstractDefinition definition, Output<StreamRecord<R>> output) {
+    public StreamOutputHandler(TypeInformation<R> typeInfo, AbstractDefinition definition,
+                               Output<StreamRecord<R>> output) {
         this.typeInfo = typeInfo;
         this.definition = definition;
         this.output = output;
@@ -76,7 +78,8 @@ public class StreamOutputHandler<R> extends StreamCallback {
                 reusableRecord.replace(obj, event.getTimestamp());
                 output.collect(reusableRecord);
             } else {
-                throw new IllegalArgumentException("Unable to format " + event + " as type " + typeInfo);
+                throw new IllegalArgumentException(
+                    "Unable to format " + event + " as type " + typeInfo);
             }
         }
     }

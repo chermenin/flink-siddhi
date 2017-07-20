@@ -26,38 +26,11 @@ import org.apache.flink.api.java.typeutils.TypeExtractor;
 import java.util.Objects;
 
 public class Event {
+
     private long timestamp;
     private String name;
     private double price;
     private int id;
-
-    public double getPrice() {
-        return price;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public String toString() {
-        return "Event(" + id + ", " + name + ", " + price + ", " + timestamp + ")";
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj instanceof Event) {
-            Event other = (Event) obj;
-
-            return name.equals(other.name) && price == other.price && id == other.id && timestamp == other.timestamp;
-        } else {
-            return false;
-        }
-    }
 
     public static Event of(int id, String name, double price) {
         Event event = new Event();
@@ -77,15 +50,58 @@ public class Event {
         return event;
     }
 
+    public static TypeSerializer<Event> createTypeSerializer() {
+        TypeInformation<Event>
+            typeInformation =
+            (TypeInformation<Event>) TypeExtractor.createTypeInfo(Event.class);
+
+        return typeInformation.createSerializer(new ExecutionConfig());
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "Event(" + id + ", " + name + ", " + price + ", " + timestamp + ")";
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Event) {
+            Event other = (Event) obj;
+
+            return name.equals(other.name) && price == other.price && id == other.id
+                   && timestamp == other.timestamp;
+        } else {
+            return false;
+        }
+    }
+
     @Override
     public int hashCode() {
         return Objects.hash(name, price, id);
-    }
-
-    public static TypeSerializer<Event> createTypeSerializer() {
-        TypeInformation<Event> typeInformation = (TypeInformation<Event>) TypeExtractor.createTypeInfo(Event.class);
-
-        return typeInformation.createSerializer(new ExecutionConfig());
     }
 
     public long getTimestamp() {
@@ -94,17 +110,5 @@ public class Event {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 }

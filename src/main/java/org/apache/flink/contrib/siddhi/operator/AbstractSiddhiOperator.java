@@ -51,36 +51,24 @@ import java.util.Map;
 import java.util.PriorityQueue;
 
 /**
- * <h1>Siddhi Runtime Operator</h1>
- * <p>
- * A flink Stream Operator to integrate with native siddhi execution runtime, extension and type schema mechanism/
- * <p>
- * <ul>
- * <li>
- * Create Siddhi {@link ExecutionPlanRuntime} according predefined execution plan and integrate with Flink Stream Operator lifecycle.
- * </li>
- * <li>
- * Connect Flink DataStreams with predefined Siddhi Stream according to unique streamId
- * </li>
- * <li>
- * Convert native {@link StreamRecord} to Siddhi {@link org.wso2.siddhi.core.event.Event} according to {@link StreamSchema}, and send to Siddhi Runtime.
- * </li>
- * <li>
- * Listen output callback event and convert as expected output type according to output {@link org.apache.flink.api.common.typeinfo.TypeInformation}, then output as typed DataStream.
- * </li>
- * </li>
- * <li>
- * Integrate siddhi runtime state management with Flink state (See `AbstractSiddhiOperator`)
- * </li>
- * <li>
- * Support siddhi plugin management to extend CEP functions. (See `SiddhiCEP#registerExtension`)
- * </li>
- * </ul>
+ * <h1>Siddhi Runtime Operator</h1> <p> A flink Stream Operator to integrate with native siddhi
+ * execution runtime, extension and type schema mechanism/<p> <ul> <li>Create Siddhi {@link
+ * ExecutionPlanRuntime} according predefined execution plan and integrate with Flink Stream
+ * Operator lifecycle.</li> <li> Connect Flink DataStreams with predefined Siddhi Stream according
+ * to unique streamId </li> <li> Convert native {@link StreamRecord} to Siddhi {@link
+ * org.wso2.siddhi.core.event.Event} according to {@link StreamSchema}, and send to Siddhi Runtime.
+ * </li> <li> Listen output callback event and convert as expected output type according to output
+ * {@link org.apache.flink.api.common.typeinfo.TypeInformation}, then output as typed DataStream.
+ * </li> </li> <li> Integrate siddhi runtime state management with Flink state (See
+ * `AbstractSiddhiOperator`) </li> <li> Support siddhi plugin management to extend CEP functions.
+ * (See `SiddhiCEP#registerExtension`) </li> </ul>
  *
  * @param <IN>  Input Element Type
  * @param <OUT> Output Element Type
  */
-public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOperator<OUT> implements OneInputStreamOperator<IN, OUT>, StreamCheckpointedOperator {
+public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOperator<OUT>
+    implements OneInputStreamOperator<IN, OUT>, StreamCheckpointedOperator {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSiddhiOperator.class);
     private static final int INITIAL_PRIORITY_QUEUE_CAPACITY = 11;
 
@@ -103,10 +91,24 @@ public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOper
         validate(siddhiPlan);
         this.executionExpression = siddhiPlan.getFinalExecutionPlan();
         this.siddhiPlan = siddhiPlan;
-        this.isProcessingTime = this.siddhiPlan.getTimeCharacteristic() == TimeCharacteristic.ProcessingTime;
+        this.isProcessingTime =
+            this.siddhiPlan.getTimeCharacteristic() == TimeCharacteristic.ProcessingTime;
         this.streamElementSerializers = new HashMap<>();
 
         registerStreamElementSerializers();
+    }
+
+    /**
+     * Validate execution plan during building DAG before submitting to execution environment and
+     * fail-fast.
+     */
+    private static void validate(final SiddhiOperatorContext siddhiPlan) {
+        SiddhiManager siddhiManager = siddhiPlan.createSiddhiManager();
+        try {
+            siddhiManager.validateExecutionPlan(siddhiPlan.getFinalExecutionPlan());
+        } finally {
+            siddhiManager.shutdown();
+        }
     }
 
     /**
@@ -114,11 +116,14 @@ public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOper
      */
     private void registerStreamElementSerializers() {
         for (String streamId : this.siddhiPlan.getInputStreams()) {
-            streamElementSerializers.put(streamId, createStreamElementSerializer(this.siddhiPlan.getInputStreamSchema(streamId), this.siddhiPlan.getExecutionConfig()));
+            streamElementSerializers.put(streamId, createStreamElementSerializer(
+                this.siddhiPlan.getInputStreamSchema(streamId),
+                this.siddhiPlan.getExecutionConfig()));
         }
     }
 
-    protected abstract StreamElementSerializer<IN> createStreamElementSerializer(StreamSchema streamSchema, ExecutionConfig executionConfig);
+    protected abstract StreamElementSerializer<IN> createStreamElementSerializer(
+        StreamSchema streamSchema, ExecutionConfig executionConfig);
 
     protected StreamElementSerializer<IN> getStreamElementSerializer(String streamId) {
         if (streamElementSerializers.containsKey(streamId)) {
@@ -141,18 +146,22 @@ public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOper
             // we have to buffer the elements until we receive the proper watermark
             if (getExecutionConfig().isObjectReuseEnabled()) {
                 // copy the StreamRecord so that it cannot be changed
-                priorityQueue.offer(new StreamRecord<>(schema.getTypeSerializer().copy(element.getValue()), element.getTimestamp()));
+                priorityQueue.offer(
+                    new StreamRecord<>(schema.getTypeSerializer().copy(element.getValue()),
+                                       element.getTimestamp()));
             } else {
                 priorityQueue.offer(element);
             }
         }
     }
 
-    protected abstract void processEvent(String streamId, StreamSchema<IN> schema, IN value, long timestamp) throws Exception;
+    protected abstract void processEvent(String streamId, StreamSchema<IN> schema, IN value,
+                                         long timestamp) throws Exception;
 
     @Override
     public void processWatermark(Watermark mark) throws Exception {
-        while (!priorityQueue.isEmpty() && priorityQueue.peek().getTimestamp() <= mark.getTimestamp()) {
+        while (!priorityQueue.isEmpty() && priorityQueue.peek().getTimestamp() <= mark
+            .getTimestamp()) {
             StreamRecord<IN> streamRecord = priorityQueue.poll();
             String streamId = getStreamId(streamRecord.getValue());
             long timestamp = streamRecord.getTimestamp();
@@ -181,7 +190,8 @@ public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOper
     }
 
     @Override
-    public void setup(StreamTask<?, ?> containingTask, StreamConfig config, Output<StreamRecord<OUT>> output) {
+    public void setup(StreamTask<?, ?> containingTask, StreamConfig config,
+                      Output<StreamRecord<OUT>> output) {
         super.setup(containingTask, config, output);
         startSiddhiRuntime();
     }
@@ -189,7 +199,9 @@ public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOper
     @Override
     public void open() throws Exception {
         if (priorityQueue == null) {
-            priorityQueue = new PriorityQueue<>(INITIAL_PRIORITY_QUEUE_CAPACITY, new StreamRecordComparator<IN>());
+            priorityQueue =
+                new PriorityQueue<>(INITIAL_PRIORITY_QUEUE_CAPACITY,
+                                    new StreamRecordComparator<IN>());
         }
         super.open();
     }
@@ -197,20 +209,9 @@ public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOper
     /**
      * Send input data to siddhi runtime
      */
-    protected void send(String streamId, Object[] data, long timestamp) throws InterruptedException {
+    protected void send(String streamId, Object[] data, long timestamp)
+        throws InterruptedException {
         this.getSiddhiInputHandler(streamId).send(timestamp, data);
-    }
-
-    /**
-     * Validate execution plan during building DAG before submitting to execution environment and fail-fast.
-     */
-    private static void validate(final SiddhiOperatorContext siddhiPlan) {
-        SiddhiManager siddhiManager = siddhiPlan.createSiddhiManager();
-        try {
-            siddhiManager.validateExecutionPlan(siddhiPlan.getFinalExecutionPlan());
-        } finally {
-            siddhiManager.shutdown();
-        }
     }
 
     /**
@@ -246,8 +247,12 @@ public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOper
 
     @SuppressWarnings("unchecked")
     private void registerInputAndOutput(ExecutionPlanRuntime runtime) {
-        AbstractDefinition definition = this.siddhiRuntime.getStreamDefinitionMap().get(this.siddhiPlan.getOutputStreamId());
-        runtime.addCallback(this.siddhiPlan.getOutputStreamId(), new StreamOutputHandler<>(this.siddhiPlan.getOutputStreamType(), definition, this.output));
+        AbstractDefinition
+            definition =
+            this.siddhiRuntime.getStreamDefinitionMap().get(this.siddhiPlan.getOutputStreamId());
+        runtime.addCallback(this.siddhiPlan.getOutputStreamId(),
+                            new StreamOutputHandler<>(this.siddhiPlan.getOutputStreamType(),
+                                                      definition, this.output));
         inputStreamHandlers = new HashMap<>();
         for (String inputStreamId : this.siddhiPlan.getInputStreams()) {
             inputStreamHandlers.put(inputStreamId, runtime.getInputHandler(inputStreamId));
@@ -263,7 +268,8 @@ public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOper
     }
 
     @Override
-    public void snapshotState(FSDataOutputStream out, long checkpointId, long timestamp) throws Exception {
+    public void snapshotState(FSDataOutputStream out, long checkpointId, long timestamp)
+        throws Exception {
         final ObjectOutputStream oos = new ObjectOutputStream(out);
 
         // Write siddhi snapshot
@@ -297,5 +303,6 @@ public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOper
     protected abstract void snapshotQueuerState(PriorityQueue<StreamRecord<IN>> queue,
                                                 DataOutputView dataOutputView) throws IOException;
 
-    protected abstract PriorityQueue<StreamRecord<IN>> restoreQueuerState(DataInputView dataInputView) throws IOException;
+    protected abstract PriorityQueue<StreamRecord<IN>> restoreQueuerState(
+        DataInputView dataInputView) throws IOException;
 }

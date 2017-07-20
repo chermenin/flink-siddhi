@@ -26,6 +26,7 @@ import java.util.Comparator;
  * Stream Record Timestamp Comparator
  */
 public class StreamRecordComparator<IN> implements Comparator<StreamRecord<IN>>, Serializable {
+
     private static final long serialVersionUID = 1581054988433915305L;
 
     @Override

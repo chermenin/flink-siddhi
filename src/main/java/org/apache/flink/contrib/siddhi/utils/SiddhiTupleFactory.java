@@ -20,14 +20,6 @@ package org.apache.flink.contrib.siddhi.utils;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple0;
 import org.apache.flink.api.java.tuple.Tuple1;
-import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.tuple.Tuple3;
-import org.apache.flink.api.java.tuple.Tuple4;
-import org.apache.flink.api.java.tuple.Tuple5;
-import org.apache.flink.api.java.tuple.Tuple6;
-import org.apache.flink.api.java.tuple.Tuple7;
-import org.apache.flink.api.java.tuple.Tuple8;
-import org.apache.flink.api.java.tuple.Tuple9;
 import org.apache.flink.api.java.tuple.Tuple10;
 import org.apache.flink.api.java.tuple.Tuple11;
 import org.apache.flink.api.java.tuple.Tuple12;
@@ -38,12 +30,20 @@ import org.apache.flink.api.java.tuple.Tuple16;
 import org.apache.flink.api.java.tuple.Tuple17;
 import org.apache.flink.api.java.tuple.Tuple18;
 import org.apache.flink.api.java.tuple.Tuple19;
+import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple20;
 import org.apache.flink.api.java.tuple.Tuple21;
 import org.apache.flink.api.java.tuple.Tuple22;
 import org.apache.flink.api.java.tuple.Tuple23;
 import org.apache.flink.api.java.tuple.Tuple24;
 import org.apache.flink.api.java.tuple.Tuple25;
+import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.java.tuple.Tuple4;
+import org.apache.flink.api.java.tuple.Tuple5;
+import org.apache.flink.api.java.tuple.Tuple6;
+import org.apache.flink.api.java.tuple.Tuple7;
+import org.apache.flink.api.java.tuple.Tuple8;
+import org.apache.flink.api.java.tuple.Tuple9;
 import org.apache.flink.util.Preconditions;
 
 /**
@@ -112,14 +112,17 @@ public class SiddhiTupleFactory {
             case 25:
                 return setTupleValue(new Tuple25(), row);
             default:
-                throw new IllegalArgumentException("Too long row: " + row.length + ", unable to convert to Tuple");
+                throw new IllegalArgumentException(
+                    "Too long row: " + row.length + ", unable to convert to Tuple");
         }
     }
 
     @SuppressWarnings("unchecked")
     public static <T extends Tuple> T setTupleValue(Tuple tuple, Object[] row) {
         if (row.length != tuple.getArity()) {
-            throw new IllegalArgumentException("Row length" + row.length + " is not equal with tuple's arity: " + tuple.getArity());
+            throw new IllegalArgumentException(
+                "Row length" + row.length + " is not equal with tuple's arity: " + tuple
+                    .getArity());
         }
         for (int i = 0; i < row.length; i++) {
             tuple.setField(row[i], i);

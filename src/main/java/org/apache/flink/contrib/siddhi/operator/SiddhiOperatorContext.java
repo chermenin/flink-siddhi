@@ -33,13 +33,15 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * SiddhiCEP Operator Context Metadata including input/output stream (streamId, TypeInformation) as well execution plan query,
- * and execution environment context like TimeCharacteristic and ExecutionConfig.
+ * SiddhiCEP Operator Context Metadata including input/output stream (streamId, TypeInformation) as
+ * well execution plan query, and execution environment context like TimeCharacteristic and
+ * ExecutionConfig.
  */
 public class SiddhiOperatorContext implements Serializable {
+
+    private final Map<String, Class<?>> siddhiExtensions;
     private ExecutionConfig executionConfig;
     private Map<String, SiddhiStreamSchema<?>> inputStreamSchemas;
-    private final Map<String, Class<?>> siddhiExtensions;
     private String outputStreamId;
     private TypeInformation outputStreamType;
     private TimeCharacteristic timeCharacteristic;
@@ -52,6 +54,13 @@ public class SiddhiOperatorContext implements Serializable {
     }
 
     /**
+     * @return registered siddhi extensions
+     */
+    public Map<String, Class<?>> getExtensions() {
+        return siddhiExtensions;
+    }
+
+    /**
      * @param extensions siddhi extensions to register
      */
     public void setExtensions(Map<String, Class<?>> extensions) {
@@ -60,25 +69,24 @@ public class SiddhiOperatorContext implements Serializable {
     }
 
     /**
-     * @return registered siddhi extensions
-     */
-    public Map<String, Class<?>> getExtensions() {
-        return siddhiExtensions;
-    }
-
-    /**
      * @return Siddhi Stream Operator Name in format of "Siddhi: execution query ... (query length)"
      */
     public String getName() {
         if (this.name == null) {
             if (executionPlan.length() > 100) {
-                return String.format("Siddhi: %s ... (%s)", executionPlan.substring(0, 100), executionPlan.length() - 100);
+                return String.format("Siddhi: %s ... (%s)", executionPlan.substring(0, 100),
+                                     executionPlan.length() - 100);
             } else {
                 return String.format("Siddhi: %s", executionPlan);
             }
         } else {
             return this.name;
         }
+    }
+
+    public void setName(String name) {
+        Preconditions.checkNotNull(name, "name");
+        this.name = name;
     }
 
     /**
@@ -98,6 +106,14 @@ public class SiddhiOperatorContext implements Serializable {
      */
     public String getExecutionPlan() {
         return executionPlan;
+    }
+
+    /**
+     * @param executionPlan Siddhi SQL-Like exeuction plan query
+     */
+    public void setExecutionPlan(String executionPlan) {
+        Preconditions.checkNotNull(executionPlan, "executionPlan");
+        this.executionPlan = executionPlan;
     }
 
     /**
@@ -121,10 +137,26 @@ public class SiddhiOperatorContext implements Serializable {
     }
 
     /**
+     * @param outputStreamType Output stream TypeInformation
+     */
+    public void setOutputStreamType(TypeInformation outputStreamType) {
+        Preconditions.checkNotNull(outputStreamType, "outputStreamType");
+        this.outputStreamType = outputStreamType;
+    }
+
+    /**
      * @return Siddhi output streamId for callback
      */
     public String getOutputStreamId() {
         return outputStreamId;
+    }
+
+    /**
+     * @param outputStreamId Siddhi output streamId, which must exist in siddhi execution plan
+     */
+    public void setOutputStreamId(String outputStreamId) {
+        Preconditions.checkNotNull(outputStreamId, "outputStreamId");
+        this.outputStreamId = outputStreamId;
     }
 
     /**
@@ -143,22 +175,6 @@ public class SiddhiOperatorContext implements Serializable {
     }
 
     /**
-     * @param outputStreamId Siddhi output streamId, which must exist in siddhi execution plan
-     */
-    public void setOutputStreamId(String outputStreamId) {
-        Preconditions.checkNotNull(outputStreamId, "outputStreamId");
-        this.outputStreamId = outputStreamId;
-    }
-
-    /**
-     * @param outputStreamType Output stream TypeInformation
-     */
-    public void setOutputStreamType(TypeInformation outputStreamType) {
-        Preconditions.checkNotNull(outputStreamType, "outputStreamType");
-        this.outputStreamType = outputStreamType;
-    }
-
-    /**
      * @return Returns execution environment TimeCharacteristic
      */
     public TimeCharacteristic getTimeCharacteristic() {
@@ -168,14 +184,6 @@ public class SiddhiOperatorContext implements Serializable {
     public void setTimeCharacteristic(TimeCharacteristic timeCharacteristic) {
         Preconditions.checkNotNull(timeCharacteristic, "timeCharacteristic");
         this.timeCharacteristic = timeCharacteristic;
-    }
-
-    /**
-     * @param executionPlan Siddhi SQL-Like exeuction plan query
-     */
-    public void setExecutionPlan(String executionPlan) {
-        Preconditions.checkNotNull(executionPlan, "executionPlan");
-        this.executionPlan = executionPlan;
     }
 
     /**
@@ -191,11 +199,6 @@ public class SiddhiOperatorContext implements Serializable {
     public void setInputStreamSchemas(Map<String, SiddhiStreamSchema<?>> inputStreamSchemas) {
         Preconditions.checkNotNull(inputStreamSchemas, "inputStreamSchemas");
         this.inputStreamSchemas = inputStreamSchemas;
-    }
-
-    public void setName(String name) {
-        Preconditions.checkNotNull(name, "name");
-        this.name = name;
     }
 
     /**
