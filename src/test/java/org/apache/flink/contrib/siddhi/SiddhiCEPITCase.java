@@ -90,14 +90,10 @@ public class SiddhiCEPITCase extends StreamingMultipleProgramsTestBase {
             .cql("from inputStream select timestamp, id, name, price insert into  outputStream")
             .returns("outputStream");
 
-        DataStream<Integer>
-            following =
-            output.map(new MapFunction<Tuple4<Long, Integer, String, Double>, Integer>() {
-                @Override
-                public Integer map(Tuple4<Long, Integer, String, Double> value) throws Exception {
-                    return value.f1;
-                }
-            });
+        DataStream<Integer> following = output
+            .map((MapFunction<Tuple4<Long, Integer, String, Double>, Integer>) value -> value.f1)
+            .returns(Integer.class);
+
         String resultPath = tempFolder.newFile().toURI().toString();
         following.writeAsText(resultPath, FileSystem.WriteMode.OVERWRITE);
         env.execute();
@@ -107,8 +103,7 @@ public class SiddhiCEPITCase extends StreamingMultipleProgramsTestBase {
     @Test
     public void testUnboundedTupleSourceAndReturnTuple() throws Exception {
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
-        DataStream<Tuple4<Integer, String, Double, Long>>
-            input =
+        DataStream<Tuple4<Integer, String, Double, Long>> input =
             env.addSource(new RandomTupleSource(5).closeDelay(1500));
 
         DataStream<Tuple4<Long, Integer, String, Double>> output = SiddhiCEP
@@ -145,24 +140,17 @@ public class SiddhiCEPITCase extends StreamingMultipleProgramsTestBase {
 
         DataStream<Tuple5<Long, Integer, String, Double, Long>> output = SiddhiCEP
             .define("inputStream", input, "id", "name", "price", "timestamp")
-            .cql("from inputStream select timestamp, id, name, price insert into  outputStream")
+            .cql("from inputStream select timestamp, id, name, price insert into outputStream")
             .returns("outputStream");
 
-        DataStream<Long>
-            following =
-            output.map(new MapFunction<Tuple5<Long, Integer, String, Double, Long>, Long>() {
-                @Override
-                public Long map(Tuple5<Long, Integer, String, Double, Long> value)
-                    throws Exception {
-                    return value.f0;
-                }
-            });
+        DataStream<Long> following = output
+            .map((MapFunction<Tuple5<Long, Integer, String, Double, Long>, Long>) value -> value.f0)
+            .returns(Long.class);
 
         String resultPath = tempFolder.newFile().toURI().toString();
         following.writeAsText(resultPath, FileSystem.WriteMode.OVERWRITE);
         env.execute();
         assertEquals(5, getLineCount(resultPath));
-        env.execute();
     }
 
     @Test
@@ -283,8 +271,7 @@ public class SiddhiCEPITCase extends StreamingMultipleProgramsTestBase {
         output.writeAsText(resultPath, FileSystem.WriteMode.OVERWRITE);
         env.execute();
         assertEquals(1, getLineCount(resultPath));
-        compareResultsByLinesInMemory("{id_1=2, name_1=test_event, id_2=3, name_2=test_event}",
-                                      resultPath);
+        compareResultsByLinesInMemory("{id_1=2, name_1=test_event, id_2=3, name_2=test_event}", resultPath);
     }
 
     /**
