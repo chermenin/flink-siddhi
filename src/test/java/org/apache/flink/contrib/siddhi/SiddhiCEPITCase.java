@@ -373,4 +373,33 @@ public class SiddhiCEPITCase extends StreamingMultipleProgramsTestBase {
         output.writeAsText(resultPath, FileSystem.WriteMode.OVERWRITE);
         env.execute();
     }
+
+    @Test
+    public void testBuiltInStringExtension() throws Exception {
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        DataStream<Event> input1 =
+            env.addSource(new RandomEventSource(5).closeDelay(1500), "input1");
+        DataStream<Event> input2 =
+            env.addSource(new RandomEventSource(5).closeDelay(1500), "input2");
+
+        DataStream<Map<String, Object>> output = SiddhiCEP
+            .getExtendedSiddhiEnvironment(env)
+            .from("inputStream1", input1.keyBy("name"), "id", "name", "price", "timestamp")
+            .union("inputStream2", input2.keyBy("name"), "id", "name", "price", "timestamp")
+            .cql(
+                "from every s1 = inputStream1[id == 2] "
+                + " -> s2 = inputStream2[id == 3] "
+                + "select s1.id as id_1, str:hex(s1.name) as name_1, "
+                + "s2.id as id_2, str:upper(s2.name) as name_2 "
+                + "insert into outputStream"
+            )
+            .returnAsMap("outputStream");
+
+        String resultPath = tempFolder.newFile().toURI().toString();
+        output.writeAsText(resultPath, FileSystem.WriteMode.OVERWRITE);
+        env.execute();
+        assertEquals(1, getLineCount(resultPath));
+        compareResultsByLinesInMemory(
+            "{id_1=2, name_1=746573745f6576656e74, id_2=3, name_2=TEST_EVENT}", resultPath);
+    }
 }

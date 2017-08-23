@@ -21,9 +21,11 @@ import org.apache.flink.annotation.PublicEvolving;
 import org.apache.flink.contrib.siddhi.exception.DuplicatedStreamException;
 import org.apache.flink.contrib.siddhi.exception.UndefinedStreamException;
 import org.apache.flink.contrib.siddhi.schema.SiddhiStreamSchema;
+import org.apache.flink.contrib.siddhi.utils.ReflectionUtils;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Preconditions;
+import org.wso2.siddhi.annotation.Extension;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,6 +44,9 @@ import java.util.Map;
  */
 @PublicEvolving
 public class SiddhiCEP {
+
+    private static boolean loadedBuiltinExtensions = false;
+    private static Map<String, Class<?>> builtinExtensions = new HashMap<>();
 
     private final StreamExecutionEnvironment executionEnvironment;
     private final Map<String, DataStream<?>> dataStreams = new HashMap<>();
@@ -71,8 +76,7 @@ public class SiddhiCEP {
         Preconditions.checkNotNull(streamId, "streamId");
         Preconditions.checkNotNull(dataStream, "dataStream");
         Preconditions.checkNotNull(fieldNames, "fieldNames");
-        SiddhiCEP
-            environment =
+        SiddhiCEP environment =
             SiddhiCEP.getSiddhiEnvironment(dataStream.getExecutionEnvironment());
         return environment.from(streamId, dataStream, fieldNames);
     }
@@ -86,6 +90,35 @@ public class SiddhiCEP {
     public static SiddhiCEP getSiddhiEnvironment(
         StreamExecutionEnvironment streamExecutionEnvironment) {
         return new SiddhiCEP(streamExecutionEnvironment);
+    }
+
+    /**
+     * Create new SiddhiCEP instance and find and register all extensions in class path.
+     *
+     * @param streamExecutionEnvironment StreamExecutionEnvironment
+     * @return New SiddhiCEP instance.
+     */
+    public static SiddhiCEP getExtendedSiddhiEnvironment(
+        StreamExecutionEnvironment streamExecutionEnvironment
+    ) {
+        SiddhiCEP siddhiCEP = new SiddhiCEP(streamExecutionEnvironment);
+
+        if (loadedBuiltinExtensions) {
+            builtinExtensions.forEach(siddhiCEP::registerExtension);
+        } else {
+            Class<?>[] extensionClasses = ReflectionUtils.getAnnotatedClasses(Extension.class);
+            for (Class<?> extensionClass : extensionClasses) {
+                Extension annotation = extensionClass.getAnnotation(Extension.class);
+                if (annotation != null) {
+                    String extensionFullName =
+                        String.format("%s:%s", annotation.namespace(), annotation.name());
+                    siddhiCEP.registerExtension(extensionFullName, extensionClass);
+                    builtinExtensions.put(extensionFullName, extensionClass);
+                }
+            }
+        }
+
+        return siddhiCEP;
     }
 
     /**
