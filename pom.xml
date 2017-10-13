@@ -36,7 +36,7 @@ under the License.
     <packaging>jar</packaging>
 
     <properties>
-        <siddhi.version>4.0.0-M51</siddhi.version>
+        <siddhi.version>4.0.0-M102</siddhi.version>
         <scala.binary.version>2.11</scala.binary.version>
     </properties>
 
@@ -130,7 +130,7 @@ under the License.
         <dependency>
             <groupId>org.wso2.extension.siddhi.execution.string</groupId>
             <artifactId>siddhi-execution-string</artifactId>
-            <version>4.0.1</version>
+            <version>4.0.4</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
