@@ -20,18 +20,19 @@ package org.apache.flink.contrib.siddhi.operator;
 import org.apache.flink.api.common.ExecutionConfig;
 import org.apache.flink.contrib.siddhi.exception.UndefinedStreamException;
 import org.apache.flink.contrib.siddhi.schema.StreamSchema;
-import org.apache.flink.core.fs.FSDataInputStream;
-import org.apache.flink.core.fs.FSDataOutputStream;
 import org.apache.flink.core.memory.DataInputView;
 import org.apache.flink.core.memory.DataInputViewStreamWrapper;
 import org.apache.flink.core.memory.DataOutputView;
 import org.apache.flink.core.memory.DataOutputViewStreamWrapper;
+import org.apache.flink.runtime.state.OperatorStateCheckpointOutputStream;
+import org.apache.flink.runtime.state.StateInitializationContext;
+import org.apache.flink.runtime.state.StatePartitionStreamProvider;
+import org.apache.flink.runtime.state.StateSnapshotContext;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.graph.StreamConfig;
 import org.apache.flink.streaming.api.operators.AbstractStreamOperator;
 import org.apache.flink.streaming.api.operators.OneInputStreamOperator;
 import org.apache.flink.streaming.api.operators.Output;
-import org.apache.flink.streaming.api.operators.StreamCheckpointedOperator;
 import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.flink.streaming.runtime.streamrecord.StreamElementSerializer;
 import org.apache.flink.streaming.runtime.streamrecord.StreamRecord;
@@ -44,8 +45,8 @@ import org.wso2.siddhi.core.stream.input.InputHandler;
 import org.wso2.siddhi.query.api.definition.AbstractDefinition;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -67,7 +68,7 @@ import java.util.PriorityQueue;
  * @param <OUT> Output Element Type
  */
 public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOperator<OUT>
-    implements OneInputStreamOperator<IN, OUT>, StreamCheckpointedOperator {
+    implements OneInputStreamOperator<IN, OUT> {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractSiddhiOperator.class);
     private static final int INITIAL_PRIORITY_QUEUE_CAPACITY = 11;
@@ -268,36 +269,44 @@ public abstract class AbstractSiddhiOperator<IN, OUT> extends AbstractStreamOper
     }
 
     @Override
-    public void snapshotState(FSDataOutputStream out, long checkpointId, long timestamp)
-        throws Exception {
-        final ObjectOutputStream oos = new ObjectOutputStream(out);
+    public void snapshotState(StateSnapshotContext context) throws Exception {
+        OperatorStateCheckpointOutputStream out = context.getRawOperatorStateOutput();
 
         // Write siddhi snapshot
         byte[] siddhiRuntimeSnapshot = this.siddhiRuntime.snapshot();
-        int siddhiRuntimeSnapshotLength = siddhiRuntimeSnapshot.length;
-        oos.writeInt(siddhiRuntimeSnapshotLength);
-        out.write(siddhiRuntimeSnapshot, 0, siddhiRuntimeSnapshotLength);
+        out.write(ByteBuffer.allocate(4).putInt(siddhiRuntimeSnapshot.length).array());
+        out.write(siddhiRuntimeSnapshot);
 
         // Write queue buffer snapshot
-        this.snapshotQueuerState(this.priorityQueue, new DataOutputViewStreamWrapper(oos));
+        this.snapshotQueuerState(this.priorityQueue, new DataOutputViewStreamWrapper(out));
 
-        oos.flush();
+        out.flush();
     }
 
     @Override
-    public void restoreState(FSDataInputStream state) throws Exception {
-        final ObjectInputStream ois = new ObjectInputStream(state);
+    public void initializeState(StateInitializationContext context) throws Exception {
+        Iterable<StatePartitionStreamProvider> providers = context.getRawOperatorStateInputs();
+        for (StatePartitionStreamProvider provider : providers) {
+            InputStream ois = provider.getStream();
+            if (ois.available() > 0) {
 
-        // Restore siddhi snapshot
-        startSiddhiRuntime();
-        int siddhiRuntimeSnapshotLength = ois.readInt();
-        byte[] siddhiRuntimeSnapshot = new byte[siddhiRuntimeSnapshotLength];
-        int readLength = ois.read(siddhiRuntimeSnapshot, 0, siddhiRuntimeSnapshotLength);
-        assert readLength == siddhiRuntimeSnapshotLength;
-        this.siddhiRuntime.restore(siddhiRuntimeSnapshot);
+                // Restore siddhi snapshot
+                startSiddhiRuntime();
+                byte[] lengthBytes = new byte[4];
+                int readLength = ois.read(lengthBytes);
+                assert readLength == lengthBytes.length;
 
-        // Restore queue buffer snapshot
-        this.priorityQueue = restoreQueuerState(new DataInputViewStreamWrapper(ois));
+                int siddhiRuntimeSnapshotLength = ByteBuffer.allocate(4).put(lengthBytes).getInt();
+                byte[] siddhiRuntimeSnapshot = new byte[siddhiRuntimeSnapshotLength];
+                readLength = ois.read(siddhiRuntimeSnapshot, 0, siddhiRuntimeSnapshotLength);
+                assert readLength == siddhiRuntimeSnapshotLength;
+
+                this.siddhiRuntime.restore(siddhiRuntimeSnapshot);
+
+                // Restore queue buffer snapshot
+                this.priorityQueue = restoreQueuerState(new DataInputViewStreamWrapper(ois));
+            }
+        }
     }
 
     protected abstract void snapshotQueuerState(PriorityQueue<StreamRecord<IN>> queue,
