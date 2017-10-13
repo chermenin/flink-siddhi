@@ -114,7 +114,7 @@ public class SiddhiCEP {
             }
             loadedBuiltinExtensions = true;
         }
-        builtinExtensions.forEach(siddhiCEP::registerExtension);
+        siddhiCEP.extensions.putAll(builtinExtensions);
         return siddhiCEP;
     }
 
