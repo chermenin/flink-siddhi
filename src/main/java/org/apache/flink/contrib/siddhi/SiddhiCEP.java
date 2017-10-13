@@ -102,22 +102,19 @@ public class SiddhiCEP {
         StreamExecutionEnvironment streamExecutionEnvironment
     ) {
         SiddhiCEP siddhiCEP = new SiddhiCEP(streamExecutionEnvironment);
-
-        if (loadedBuiltinExtensions) {
-            builtinExtensions.forEach(siddhiCEP::registerExtension);
-        } else {
+        if (!loadedBuiltinExtensions) {
             Class<?>[] extensionClasses = ReflectionUtils.getAnnotatedClasses(Extension.class);
             for (Class<?> extensionClass : extensionClasses) {
                 Extension annotation = extensionClass.getAnnotation(Extension.class);
                 if (annotation != null) {
                     String extensionFullName =
                         String.format("%s:%s", annotation.namespace(), annotation.name());
-                    siddhiCEP.registerExtension(extensionFullName, extensionClass);
                     builtinExtensions.put(extensionFullName, extensionClass);
                 }
             }
+            loadedBuiltinExtensions = true;
         }
-
+        builtinExtensions.forEach(siddhiCEP::registerExtension);
         return siddhiCEP;
     }
 
