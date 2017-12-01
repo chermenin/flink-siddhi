@@ -21,6 +21,7 @@ import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A source implementation to emit random tuples.
@@ -32,14 +33,8 @@ public class RandomTupleSource implements SourceFunction<Tuple4<Integer, String,
 	private final long initialTimestamp;
 
 	private volatile boolean isRunning = true;
-	private volatile int number = 0;
+	private volatile AtomicInteger number = new AtomicInteger(0);
 	private long closeDelayTimestamp;
-
-	public RandomTupleSource(int count, long initialTimestamp) {
-		this.count = count;
-		this.random = new Random();
-		this.initialTimestamp = initialTimestamp;
-	}
 
 	public RandomTupleSource() {
 		this(Integer.MAX_VALUE, System.currentTimeMillis());
@@ -49,18 +44,29 @@ public class RandomTupleSource implements SourceFunction<Tuple4<Integer, String,
 		this(count, System.currentTimeMillis());
 	}
 
+	public RandomTupleSource(int count, long initialTimestamp) {
+		this.count = count;
+		this.random = new Random();
+		this.initialTimestamp = initialTimestamp;
+	}
+
 	public RandomTupleSource closeDelay(long delayTimestamp) {
 		this.closeDelayTimestamp = delayTimestamp;
 		return this;
 	}
 
 	@Override
-	public void run(SourceContext<Tuple4<Integer, String, Double, Long>> ctx) throws Exception {
+	public void run(SourceContext<Tuple4<Integer, String, Double, Long>> ctx) {
 		while (isRunning) {
-			ctx.collect(Tuple4.of(number, "test_tuple", random.nextDouble(),
-								  initialTimestamp + 1000 * number));
-			number++;
-			if (number >= this.count) {
+			long timestamp = initialTimestamp + 1000 * number.get();
+
+			ctx.collectWithTimestamp(
+				Tuple4.of(number.get(), "test_tuple", random.nextDouble(), timestamp),
+				timestamp
+			);
+
+			int numberValue = number.incrementAndGet();
+			if (numberValue >= this.count) {
 				cancel();
 			}
 		}

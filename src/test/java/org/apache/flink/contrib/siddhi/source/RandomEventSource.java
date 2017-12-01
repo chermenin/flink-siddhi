@@ -20,6 +20,7 @@ package org.apache.flink.contrib.siddhi.source;
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A source implementation to emit random events.
@@ -31,14 +32,8 @@ public class RandomEventSource implements SourceFunction<Event> {
 	private final long initialTimestamp;
 
 	private volatile boolean isRunning = true;
-	private volatile int number = 0;
+	private volatile AtomicInteger number = new AtomicInteger(0);
 	private volatile long closeDelayTimestamp = 1000;
-
-	public RandomEventSource(int count, long initialTimestamp) {
-		this.count = count;
-		this.random = new Random();
-		this.initialTimestamp = initialTimestamp;
-	}
 
 	public RandomEventSource() {
 		this(Integer.MAX_VALUE, System.currentTimeMillis());
@@ -48,18 +43,29 @@ public class RandomEventSource implements SourceFunction<Event> {
 		this(count, System.currentTimeMillis());
 	}
 
+	public RandomEventSource(int count, long initialTimestamp) {
+		this.count = count;
+		this.random = new Random();
+		this.initialTimestamp = initialTimestamp;
+	}
+
 	public RandomEventSource closeDelay(long delayTimestamp) {
 		this.closeDelayTimestamp = delayTimestamp;
 		return this;
 	}
 
 	@Override
-	public void run(SourceContext<Event> ctx) throws Exception {
+	public void run(SourceContext<Event> ctx) {
 		while (isRunning) {
-			ctx.collect(Event.of(number, "test_event", random.nextDouble(),
-								 initialTimestamp + 1000 * number));
-			number++;
-			if (number >= this.count) {
+			long timestamp = initialTimestamp + 1000 * number.get();
+
+			ctx.collectWithTimestamp(
+				Event.of(number.get(), "test_event", random.nextDouble(), timestamp),
+				timestamp
+			);
+
+			int numberValue = number.incrementAndGet();
+			if (numberValue >= this.count) {
 				cancel();
 			}
 		}
