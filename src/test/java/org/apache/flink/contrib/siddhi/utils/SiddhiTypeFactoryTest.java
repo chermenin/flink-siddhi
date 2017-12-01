@@ -22,41 +22,48 @@ import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.typeutils.TypeInfoParser;
+
 import org.junit.Assert;
 import org.junit.Test;
 
+/**
+ * test to check the Siddhi type factory class.
+ */
 public class SiddhiTypeFactoryTest {
 
-    @Test
-    public void testTypeInfoParser() {
-        TypeInformation<Tuple3<String, Long, Object>>
-            type1 =
-            TypeInfoParser.parse("Tuple3<String,Long,java.lang.Object>");
-        Assert.assertNotNull(type1);
-        TypeInformation<Tuple4<String, Long, Object, InnerPojo>>
-            type2 =
-            TypeInfoParser.parse(
-                "Tuple4<" + String.class.getName() + ", " + Long.class.getName() + ", "
-                + java.lang.Object.class.getName() + "," + InnerPojo.class.getName() + ">");
-        Assert.assertNotNull(type2);
-    }
+	@Test
+	public void testTypeInfoParser() {
+		TypeInformation<Tuple3<String, Long, Object>>
+			type1 =
+			TypeInfoParser.parse("Tuple3<String,Long,java.lang.Object>");
+		Assert.assertNotNull(type1);
+		TypeInformation<Tuple4<String, Long, Object, InnerPojo>>
+			type2 =
+			TypeInfoParser.parse(
+				"Tuple4<" + String.class.getName() + ", " + Long.class.getName() + ", "
+				+ java.lang.Object.class.getName() + "," + InnerPojo.class.getName() + ">");
+		Assert.assertNotNull(type2);
+	}
 
-    @Test
-    public void testBuildTypeInformationForSiddhiStream() {
-        String query = "define stream inputStream (timestamp long, name string, value double);"
-                       + "from inputStream select name, value insert into outputStream;";
-        TypeInformation<Tuple3<Long, String, Double>>
-            inputStreamType =
-            SiddhiTypeFactory.getTupleTypeInformation(query, "inputStream");
-        TypeInformation<Tuple2<String, Double>>
-            outputStreamType =
-            SiddhiTypeFactory.getTupleTypeInformation(query, "outputStream");
+	@Test
+	public void testBuildTypeInformationForSiddhiStream() {
+		String query = "define stream inputStream (timestamp long, name string, value double);"
+					   + "from inputStream select name, value insert into outputStream;";
+		TypeInformation<Tuple3<Long, String, Double>>
+			inputStreamType =
+			SiddhiTypeFactory.getTupleTypeInformation(query, "inputStream");
+		TypeInformation<Tuple2<String, Double>>
+			outputStreamType =
+			SiddhiTypeFactory.getTupleTypeInformation(query, "outputStream");
 
-        Assert.assertNotNull(inputStreamType);
-        Assert.assertNotNull(outputStreamType);
-    }
+		Assert.assertNotNull(inputStreamType);
+		Assert.assertNotNull(outputStreamType);
+	}
 
-    public static class InnerPojo {
+	/**
+	 * Inner POJO class for the test.
+	 */
+	public static class InnerPojo {
 
-    }
+	}
 }

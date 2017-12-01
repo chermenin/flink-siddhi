@@ -32,64 +32,63 @@ import java.io.IOException;
 import java.util.PriorityQueue;
 
 /**
- * Wrap input event in generic type of <code>IN</code> as Tuple2<String,IN>
+ * A stream operator to wrap input event in generic type of <code>IN</code> as
+ * <code>Tuple2&lt;String,IN&gt;</code>.
  */
 public class SiddhiStreamOperator<IN, OUT> extends AbstractSiddhiOperator<Tuple2<String, IN>, OUT> {
 
-    public SiddhiStreamOperator(SiddhiOperatorContext siddhiPlan) {
-        super(siddhiPlan);
-    }
+	public SiddhiStreamOperator(SiddhiOperatorContext siddhiPlan) {
+		super(siddhiPlan);
+	}
 
-    @Override
-    protected StreamElementSerializer<Tuple2<String, IN>> createStreamElementSerializer(
-        StreamSchema streamSchema, ExecutionConfig executionConfig) {
-        TypeInformation<Tuple2<String, IN>>
-            tuple2TypeInformation =
-            SiddhiTypeFactory
-                .getStreamTupleTypeInformation((TypeInformation<IN>) streamSchema.getTypeInfo());
-        return new StreamElementSerializer<>(
-            tuple2TypeInformation.createSerializer(executionConfig));
-    }
+	@Override
+	protected StreamElementSerializer<Tuple2<String, IN>> createStreamElementSerializer(
+		StreamSchema streamSchema, ExecutionConfig executionConfig) {
+		TypeInformation<Tuple2<String, IN>> tuple2TypeInformation = SiddhiTypeFactory
+			.getStreamTupleTypeInformation((TypeInformation<IN>) streamSchema.getTypeInfo());
+		return new StreamElementSerializer<>(
+			tuple2TypeInformation.createSerializer(executionConfig));
+	}
 
-    @Override
-    protected void processEvent(String streamId, StreamSchema<Tuple2<String, IN>> schema,
-                                Tuple2<String, IN> value, long timestamp)
-        throws InterruptedException {
-        send(value.f0,
-             getSiddhiPlan().getInputStreamSchema(value.f0).getStreamSerializer().getRow(value.f1),
-             timestamp);
-    }
+	@Override
+	protected void processEvent(String streamId, StreamSchema<Tuple2<String, IN>> schema,
+								Tuple2<String, IN> value, long timestamp)
+		throws InterruptedException {
+		send(value.f0,
+			 getSiddhiPlan().getInputStreamSchema(value.f0).getStreamSerializer().getRow(value.f1),
+			 timestamp);
+	}
 
-    @Override
-    public String getStreamId(Tuple2<String, IN> record) {
-        return record.f0;
-    }
+	@Override
+	public String getStreamId(Tuple2<String, IN> record) {
+		return record.f0;
+	}
 
-    @Override
-    protected void snapshotQueuerState(PriorityQueue<StreamRecord<Tuple2<String, IN>>> queue,
-                                       DataOutputView dataOutputView) throws IOException {
-        dataOutputView.writeInt(queue.size());
-        for (StreamRecord<Tuple2<String, IN>> record : queue) {
-            String streamId = record.getValue().f0;
-            dataOutputView.writeUTF(streamId);
-            this.getStreamElementSerializer(streamId).serialize(record, dataOutputView);
-        }
-    }
+	@Override
+	protected void snapshotQueuerState(PriorityQueue<StreamRecord<Tuple2<String, IN>>> queue,
+									   DataOutputView dataOutputView) throws IOException {
+		dataOutputView.writeInt(queue.size());
+		for (StreamRecord<Tuple2<String, IN>> record : queue) {
+			String streamId = record.getValue().f0;
+			dataOutputView.writeUTF(streamId);
+			this.getStreamElementSerializer(streamId).serialize(record, dataOutputView);
+		}
+	}
 
-    @Override
-    protected PriorityQueue<StreamRecord<Tuple2<String, IN>>> restoreQueuerState(
-        DataInputView dataInputView) throws IOException {
-        int sizeOfQueue = dataInputView.readInt();
-        PriorityQueue<StreamRecord<Tuple2<String, IN>>>
-            priorityQueue =
-            new PriorityQueue<>(sizeOfQueue);
-        for (int i = 0; i < sizeOfQueue; i++) {
-            String streamId = dataInputView.readUTF();
-            StreamElement
-                streamElement =
-                getStreamElementSerializer(streamId).deserialize(dataInputView);
-            priorityQueue.offer(streamElement.asRecord());
-        }
-        return priorityQueue;
-    }
+	@Override
+	protected PriorityQueue<StreamRecord<Tuple2<String, IN>>> restoreQueuerState(
+		DataInputView dataInputView) throws IOException {
+		int sizeOfQueue = dataInputView.readInt();
+		PriorityQueue<StreamRecord<Tuple2<String, IN>>>
+			priorityQueue =
+			new PriorityQueue<>(sizeOfQueue);
+		for (int i = 0; i < sizeOfQueue; i++) {
+			String streamId = dataInputView.readUTF();
+			StreamElement
+				streamElement =
+				getStreamElementSerializer(streamId).deserialize(dataInputView);
+			priorityQueue.offer(streamElement.asRecord());
+		}
+		return priorityQueue;
+	}
 }

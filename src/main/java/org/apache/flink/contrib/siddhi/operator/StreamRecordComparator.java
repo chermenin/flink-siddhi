@@ -23,14 +23,14 @@ import java.io.Serializable;
 import java.util.Comparator;
 
 /**
- * Stream Record Timestamp Comparator
+ * Stream Record timestamp comparator implementation.
  */
 public class StreamRecordComparator<IN> implements Comparator<StreamRecord<IN>>, Serializable {
 
-    private static final long serialVersionUID = 1581054988433915305L;
+	private static final long serialVersionUID = 1581054988433915305L;
 
-    @Override
-    public int compare(StreamRecord<IN> o1, StreamRecord<IN> o2) {
-        return Long.compare(o1.getTimestamp(), o2.getTimestamp());
-    }
+	@Override
+	public int compare(StreamRecord<IN> o1, StreamRecord<IN> o2) {
+		return Long.compare(o1.getTimestamp(), o2.getTimestamp());
+	}
 }

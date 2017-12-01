@@ -22,55 +22,57 @@ import org.apache.flink.streaming.api.functions.source.SourceFunction;
 
 import java.util.Random;
 
+/**
+ * A source implementation to emit random tuples.
+ */
 public class RandomTupleSource implements SourceFunction<Tuple4<Integer, String, Double, Long>> {
 
-    private final int count;
-    private final Random random;
-    private final long initialTimestamp;
+	private final int count;
+	private final Random random;
+	private final long initialTimestamp;
 
-    private volatile boolean isRunning = true;
-    private volatile int number = 0;
-    private long closeDelayTimestamp;
+	private volatile boolean isRunning = true;
+	private volatile int number = 0;
+	private long closeDelayTimestamp;
 
-    public RandomTupleSource(int count, long initialTimestamp) {
-        this.count = count;
-        this.random = new Random();
-        this.initialTimestamp = initialTimestamp;
-    }
+	public RandomTupleSource(int count, long initialTimestamp) {
+		this.count = count;
+		this.random = new Random();
+		this.initialTimestamp = initialTimestamp;
+	}
 
-    public RandomTupleSource() {
-        this(Integer.MAX_VALUE, System.currentTimeMillis());
-    }
+	public RandomTupleSource() {
+		this(Integer.MAX_VALUE, System.currentTimeMillis());
+	}
 
-    public RandomTupleSource(int count) {
-        this(count, System.currentTimeMillis());
-    }
+	public RandomTupleSource(int count) {
+		this(count, System.currentTimeMillis());
+	}
 
+	public RandomTupleSource closeDelay(long delayTimestamp) {
+		this.closeDelayTimestamp = delayTimestamp;
+		return this;
+	}
 
-    public RandomTupleSource closeDelay(long delayTimestamp) {
-        this.closeDelayTimestamp = delayTimestamp;
-        return this;
-    }
+	@Override
+	public void run(SourceContext<Tuple4<Integer, String, Double, Long>> ctx) throws Exception {
+		while (isRunning) {
+			ctx.collect(Tuple4.of(number, "test_tuple", random.nextDouble(),
+								  initialTimestamp + 1000 * number));
+			number++;
+			if (number >= this.count) {
+				cancel();
+			}
+		}
+	}
 
-    @Override
-    public void run(SourceContext<Tuple4<Integer, String, Double, Long>> ctx) throws Exception {
-        while (isRunning) {
-            ctx.collect(Tuple4.of(number, "test_tuple", random.nextDouble(),
-                                  initialTimestamp + 1000 * number));
-            number++;
-            if (number >= this.count) {
-                cancel();
-            }
-        }
-    }
-
-    @Override
-    public void cancel() {
-        this.isRunning = false;
-        try {
-            Thread.sleep(this.closeDelayTimestamp);
-        } catch (InterruptedException e) {
-            // ignored
-        }
-    }
+	@Override
+	public void cancel() {
+		this.isRunning = false;
+		try {
+			Thread.sleep(this.closeDelayTimestamp);
+		} catch (InterruptedException e) {
+			// ignored
+		}
+	}
 }

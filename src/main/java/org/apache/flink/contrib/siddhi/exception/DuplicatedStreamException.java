@@ -17,9 +17,12 @@
 
 package org.apache.flink.contrib.siddhi.exception;
 
+/**
+ * Exception class to throw on already defined stream registration.
+ */
 public class DuplicatedStreamException extends RuntimeException {
 
-    public DuplicatedStreamException(String message) {
-        super(message);
-    }
+	public DuplicatedStreamException(String message) {
+		super(message);
+	}
 }

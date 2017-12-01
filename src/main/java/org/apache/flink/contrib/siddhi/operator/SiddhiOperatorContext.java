@@ -24,6 +24,7 @@ import org.apache.flink.contrib.siddhi.schema.SiddhiStreamSchema;
 import org.apache.flink.contrib.siddhi.schema.StreamSchema;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.util.Preconditions;
+
 import org.wso2.siddhi.core.SiddhiManager;
 
 import java.io.Serializable;
@@ -39,191 +40,191 @@ import java.util.Map;
  */
 public class SiddhiOperatorContext implements Serializable {
 
-    private final Map<String, Class<?>> siddhiExtensions;
-    private ExecutionConfig executionConfig;
-    private Map<String, SiddhiStreamSchema<?>> inputStreamSchemas;
-    private String outputStreamId;
-    private TypeInformation outputStreamType;
-    private TimeCharacteristic timeCharacteristic;
-    private String name;
-    private String executionPlan;
+	private final Map<String, Class<?>> siddhiExtensions;
+	private ExecutionConfig executionConfig;
+	private Map<String, SiddhiStreamSchema<?>> inputStreamSchemas;
+	private String outputStreamId;
+	private TypeInformation outputStreamType;
+	private TimeCharacteristic timeCharacteristic;
+	private String name;
+	private String executionPlan;
 
-    public SiddhiOperatorContext() {
-        inputStreamSchemas = new HashMap<>();
-        siddhiExtensions = new HashMap<>();
-    }
+	public SiddhiOperatorContext() {
+		inputStreamSchemas = new HashMap<>();
+		siddhiExtensions = new HashMap<>();
+	}
 
-    /**
-     * @return registered siddhi extensions
-     */
-    public Map<String, Class<?>> getExtensions() {
-        return siddhiExtensions;
-    }
+	/**
+	 * @return registered siddhi extensions
+	 */
+	public Map<String, Class<?>> getExtensions() {
+		return siddhiExtensions;
+	}
 
-    /**
-     * @param extensions siddhi extensions to register
-     */
-    public void setExtensions(Map<String, Class<?>> extensions) {
-        Preconditions.checkNotNull(extensions, "extensions");
-        siddhiExtensions.putAll(extensions);
-    }
+	/**
+	 * @param extensions siddhi extensions to register
+	 */
+	public void setExtensions(Map<String, Class<?>> extensions) {
+		Preconditions.checkNotNull(extensions, "extensions");
+		siddhiExtensions.putAll(extensions);
+	}
 
-    /**
-     * @return Siddhi Stream Operator Name in format of "Siddhi: execution query ... (query length)"
-     */
-    public String getName() {
-        if (this.name == null) {
-            if (executionPlan.length() > 100) {
-                return String.format("Siddhi: %s ... (%s)", executionPlan.substring(0, 100),
-                                     executionPlan.length() - 100);
-            } else {
-                return String.format("Siddhi: %s", executionPlan);
-            }
-        } else {
-            return this.name;
-        }
-    }
+	/**
+	 * @return Siddhi Stream Operator Name in format of "Siddhi: execution query ... (query length)"
+	 */
+	public String getName() {
+		if (this.name == null) {
+			if (executionPlan.length() > 100) {
+				return String.format("Siddhi: %s ... (%s)", executionPlan.substring(0, 100),
+									 executionPlan.length() - 100);
+			} else {
+				return String.format("Siddhi: %s", executionPlan);
+			}
+		} else {
+			return this.name;
+		}
+	}
 
-    public void setName(String name) {
-        Preconditions.checkNotNull(name, "name");
-        this.name = name;
-    }
+	public void setName(String name) {
+		Preconditions.checkNotNull(name, "name");
+		this.name = name;
+	}
 
-    /**
-     * @return Source siddhi stream IDs
-     */
-    public List<String> getInputStreams() {
-        Object[] keys = this.inputStreamSchemas.keySet().toArray();
-        List<String> result = new ArrayList<>(keys.length);
-        for (Object key : keys) {
-            result.add((String) key);
-        }
-        return result;
-    }
+	/**
+	 * @return Source siddhi stream IDs
+	 */
+	public List<String> getInputStreams() {
+		Object[] keys = this.inputStreamSchemas.keySet().toArray();
+		List<String> result = new ArrayList<>(keys.length);
+		for (Object key : keys) {
+			result.add((String) key);
+		}
+		return result;
+	}
 
-    /**
-     * @return Siddhi CEP cql-like execution plan
-     */
-    public String getExecutionPlan() {
-        return executionPlan;
-    }
+	/**
+	 * @return Siddhi CEP cql-like execution plan
+	 */
+	public String getExecutionPlan() {
+		return executionPlan;
+	}
 
-    /**
-     * @param executionPlan Siddhi SQL-Like exeuction plan query
-     */
-    public void setExecutionPlan(String executionPlan) {
-        Preconditions.checkNotNull(executionPlan, "executionPlan");
-        this.executionPlan = executionPlan;
-    }
+	/**
+	 * @param executionPlan Siddhi SQL-Like exeuction plan query
+	 */
+	public void setExecutionPlan(String executionPlan) {
+		Preconditions.checkNotNull(executionPlan, "executionPlan");
+		this.executionPlan = executionPlan;
+	}
 
-    /**
-     * Stream definition + execution expression
-     */
-    public String getFinalExecutionPlan() {
-        Preconditions.checkNotNull(executionPlan, "Execution plan is not set");
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, SiddhiStreamSchema<?>> entry : inputStreamSchemas.entrySet()) {
-            sb.append(entry.getValue().getStreamDefinitionExpression(entry.getKey()));
-        }
-        sb.append(this.getExecutionPlan());
-        return sb.toString();
-    }
+	/**
+	 * Stream definition + execution expression.
+	 */
+	public String getFinalExecutionPlan() {
+		Preconditions.checkNotNull(executionPlan, "Execution plan is not set");
+		StringBuilder sb = new StringBuilder();
+		for (Map.Entry<String, SiddhiStreamSchema<?>> entry : inputStreamSchemas.entrySet()) {
+			sb.append(entry.getValue().getStreamDefinitionExpression(entry.getKey()));
+		}
+		sb.append(this.getExecutionPlan());
+		return sb.toString();
+	}
 
-    /**
-     * @return Siddhi Stream Operator output type information
-     */
-    public TypeInformation getOutputStreamType() {
-        return outputStreamType;
-    }
+	/**
+	 * @return Siddhi Stream Operator output type information
+	 */
+	public TypeInformation getOutputStreamType() {
+		return outputStreamType;
+	}
 
-    /**
-     * @param outputStreamType Output stream TypeInformation
-     */
-    public void setOutputStreamType(TypeInformation outputStreamType) {
-        Preconditions.checkNotNull(outputStreamType, "outputStreamType");
-        this.outputStreamType = outputStreamType;
-    }
+	/**
+	 * @param outputStreamType Output stream TypeInformation
+	 */
+	public void setOutputStreamType(TypeInformation outputStreamType) {
+		Preconditions.checkNotNull(outputStreamType, "outputStreamType");
+		this.outputStreamType = outputStreamType;
+	}
 
-    /**
-     * @return Siddhi output streamId for callback
-     */
-    public String getOutputStreamId() {
-        return outputStreamId;
-    }
+	/**
+	 * @return Siddhi output streamId for callback
+	 */
+	public String getOutputStreamId() {
+		return outputStreamId;
+	}
 
-    /**
-     * @param outputStreamId Siddhi output streamId, which must exist in siddhi execution plan
-     */
-    public void setOutputStreamId(String outputStreamId) {
-        Preconditions.checkNotNull(outputStreamId, "outputStreamId");
-        this.outputStreamId = outputStreamId;
-    }
+	/**
+	 * @param outputStreamId Siddhi output streamId, which must exist in siddhi execution plan
+	 */
+	public void setOutputStreamId(String outputStreamId) {
+		Preconditions.checkNotNull(outputStreamId, "outputStreamId");
+		this.outputStreamId = outputStreamId;
+	}
 
-    /**
-     * @param inputStreamId Siddhi streamId
-     * @return StreamSchema for given siddhi streamId
-     * @throws UndefinedStreamException throws if stream is not defined
-     */
-    @SuppressWarnings("unchecked")
-    public <IN> StreamSchema<IN> getInputStreamSchema(String inputStreamId) {
-        Preconditions.checkNotNull(inputStreamId, "inputStreamId");
+	/**
+	 * @param inputStreamId Siddhi streamId
+	 * @return StreamSchema for given siddhi streamId
+	 * @throws UndefinedStreamException throws if stream is not defined
+	 */
+	@SuppressWarnings("unchecked")
+	public <IN> StreamSchema<IN> getInputStreamSchema(String inputStreamId) {
+		Preconditions.checkNotNull(inputStreamId, "inputStreamId");
 
-        if (!inputStreamSchemas.containsKey(inputStreamId)) {
-            throw new UndefinedStreamException("Input stream: " + inputStreamId + " is not found");
-        }
-        return (StreamSchema<IN>) inputStreamSchemas.get(inputStreamId);
-    }
+		if (!inputStreamSchemas.containsKey(inputStreamId)) {
+			throw new UndefinedStreamException("Input stream: " + inputStreamId + " is not found");
+		}
+		return (StreamSchema<IN>) inputStreamSchemas.get(inputStreamId);
+	}
 
-    /**
-     * @return Returns execution environment TimeCharacteristic
-     */
-    public TimeCharacteristic getTimeCharacteristic() {
-        return timeCharacteristic;
-    }
+	/**
+	 * @return Returns execution environment TimeCharacteristic
+	 */
+	public TimeCharacteristic getTimeCharacteristic() {
+		return timeCharacteristic;
+	}
 
-    public void setTimeCharacteristic(TimeCharacteristic timeCharacteristic) {
-        Preconditions.checkNotNull(timeCharacteristic, "timeCharacteristic");
-        this.timeCharacteristic = timeCharacteristic;
-    }
+	public void setTimeCharacteristic(TimeCharacteristic timeCharacteristic) {
+		Preconditions.checkNotNull(timeCharacteristic, "timeCharacteristic");
+		this.timeCharacteristic = timeCharacteristic;
+	}
 
-    /**
-     * @return Returns input stream ID and  schema mapping
-     */
-    public Map<String, SiddhiStreamSchema<?>> getInputStreamSchemas() {
-        return inputStreamSchemas;
-    }
+	/**
+	 * @return Returns input stream ID and  schema mapping
+	 */
+	public Map<String, SiddhiStreamSchema<?>> getInputStreamSchemas() {
+		return inputStreamSchemas;
+	}
 
-    /**
-     * @param inputStreamSchemas input stream ID and  schema mapping
-     */
-    public void setInputStreamSchemas(Map<String, SiddhiStreamSchema<?>> inputStreamSchemas) {
-        Preconditions.checkNotNull(inputStreamSchemas, "inputStreamSchemas");
-        this.inputStreamSchemas = inputStreamSchemas;
-    }
+	/**
+	 * @param inputStreamSchemas input stream ID and  schema mapping
+	 */
+	public void setInputStreamSchemas(Map<String, SiddhiStreamSchema<?>> inputStreamSchemas) {
+		Preconditions.checkNotNull(inputStreamSchemas, "inputStreamSchemas");
+		this.inputStreamSchemas = inputStreamSchemas;
+	}
 
-    /**
-     * @return Created new SiddhiManager instance with registered siddhi extensions
-     */
-    public SiddhiManager createSiddhiManager() {
-        SiddhiManager siddhiManager = new SiddhiManager();
-        for (Map.Entry<String, Class<?>> entry : getExtensions().entrySet()) {
-            siddhiManager.setExtension(entry.getKey(), entry.getValue());
-        }
-        return siddhiManager;
-    }
+	/**
+	 * @return Created new SiddhiManager instance with registered siddhi extensions
+	 */
+	public SiddhiManager createSiddhiManager() {
+		SiddhiManager siddhiManager = new SiddhiManager();
+		for (Map.Entry<String, Class<?>> entry : getExtensions().entrySet()) {
+			siddhiManager.setExtension(entry.getKey(), entry.getValue());
+		}
+		return siddhiManager;
+	}
 
-    /**
-     * @return StreamExecutionEnvironment ExecutionConfig
-     */
-    public ExecutionConfig getExecutionConfig() {
-        return executionConfig;
-    }
+	/**
+	 * @return StreamExecutionEnvironment ExecutionConfig
+	 */
+	public ExecutionConfig getExecutionConfig() {
+		return executionConfig;
+	}
 
-    /**
-     * @param executionConfig StreamExecutionEnvironment ExecutionConfig
-     */
-    public void setExecutionConfig(ExecutionConfig executionConfig) {
-        Preconditions.checkNotNull(executionConfig, "executionConfig");
-        this.executionConfig = executionConfig;
-    }
+	/**
+	 * @param executionConfig StreamExecutionEnvironment ExecutionConfig
+	 */
+	public void setExecutionConfig(ExecutionConfig executionConfig) {
+		Preconditions.checkNotNull(executionConfig, "executionConfig");
+		this.executionConfig = executionConfig;
+	}
 }

@@ -27,107 +27,110 @@ import org.wso2.siddhi.query.api.definition.Attribute;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * An implementation of a custom function for Siddhi CEP library.
+ */
 public class CustomPlusFunctionExtension extends FunctionExecutor {
 
-    private Attribute.Type returnType;
+	private Attribute.Type returnType;
 
-    /**
-     * The initialization method for FunctionExecutor, this method will be called before the other
-     * methods
-     *
-     * @param expressionExecutors are the executors of each function parameters
-     * @param configReader        config reader
-     * @param siddhiAppContext    the context of the execution plan
-     */
-    @Override
-    protected void init(
-        ExpressionExecutor[] expressionExecutors,
-        ConfigReader configReader,
-        SiddhiAppContext siddhiAppContext
-    ) {
-        for (ExpressionExecutor expressionExecutor : attributeExpressionExecutors) {
-            Attribute.Type attributeType = expressionExecutor.getReturnType();
-            if (attributeType == Attribute.Type.DOUBLE) {
-                returnType = attributeType;
-            } else if (
-                attributeType == Attribute.Type.STRING ||
-                attributeType == Attribute.Type.BOOL
-            ) {
-                throw new SiddhiAppCreationException(
-                    "Plus cannot have parameters with types String or Bool");
-            } else {
-                returnType = Attribute.Type.LONG;
-            }
-        }
-    }
+	/**
+	 * The initialization method for FunctionExecutor, this method will be called before the other
+	 * methods.
+	 *
+	 * @param expressionExecutors are the executors of each function parameters
+	 * @param configReader        config reader
+	 * @param siddhiAppContext    the context of the execution plan
+	 */
+	@Override
+	protected void init(
+		ExpressionExecutor[] expressionExecutors,
+		ConfigReader configReader,
+		SiddhiAppContext siddhiAppContext
+	) {
+		for (ExpressionExecutor expressionExecutor : attributeExpressionExecutors) {
+			Attribute.Type attributeType = expressionExecutor.getReturnType();
+			if (attributeType == Attribute.Type.DOUBLE) {
+				returnType = attributeType;
+			} else if (
+				attributeType == Attribute.Type.STRING ||
+				attributeType == Attribute.Type.BOOL
+				) {
+				throw new SiddhiAppCreationException(
+					"Plus cannot have parameters with types String or Bool");
+			} else {
+				returnType = Attribute.Type.LONG;
+			}
+		}
+	}
 
-    /**
-     * The main execution method which will be called upon event arrival when there are more then
-     * one function parameter
-     *
-     * @param data the runtime values of function parameters
-     * @return the function result
-     */
-    @Override
-    protected Object execute(Object[] data) {
-        if (returnType == Attribute.Type.DOUBLE) {
-            double total = 0;
-            for (Object aObj : data) {
-                total += Double.parseDouble(String.valueOf(aObj));
-            }
+	/**
+	 * The main execution method which will be called upon event arrival when there are more then
+	 * one function parameter.
+	 *
+	 * @param data the runtime values of function parameters
+	 * @return the function result
+	 */
+	@Override
+	protected Object execute(Object[] data) {
+		if (returnType == Attribute.Type.DOUBLE) {
+			double total = 0;
+			for (Object aObj : data) {
+				total += Double.parseDouble(String.valueOf(aObj));
+			}
 
-            return total;
-        } else {
-            long total = 0;
-            for (Object aObj : data) {
-                total += Long.parseLong(String.valueOf(aObj));
-            }
-            return total;
-        }
-    }
+			return total;
+		} else {
+			long total = 0;
+			for (Object aObj : data) {
+				total += Long.parseLong(String.valueOf(aObj));
+			}
+			return total;
+		}
+	}
 
-    /**
-     * The main execution method which will be called upon event arrival when there are zero or one
-     * function parameter
-     *
-     * @param data null if the function parameter count is zero or runtime data value of the
-     *             function parameter
-     * @return the function result
-     */
-    @Override
-    protected Object execute(Object data) {
-        if (returnType == Attribute.Type.DOUBLE) {
-            return Double.parseDouble(String.valueOf(data));
-        } else {
-            return Long.parseLong(String.valueOf(data));
-        }
-    }
+	/**
+	 * The main execution method which will be called upon event arrival when there are zero or one
+	 * function parameter.
+	 *
+	 * @param data null if the function parameter count is zero or runtime data value of the
+	 *             function parameter
+	 * @return the function result
+	 */
+	@Override
+	protected Object execute(Object data) {
+		if (returnType == Attribute.Type.DOUBLE) {
+			return Double.parseDouble(String.valueOf(data));
+		} else {
+			return Long.parseLong(String.valueOf(data));
+		}
+	}
 
-    @Override
-    public Attribute.Type getReturnType() {
-        return returnType;
-    }
+	@Override
+	public Attribute.Type getReturnType() {
+		return returnType;
+	}
 
-    /**
-     * Used to collect the serializable state of the processing element, that need to be persisted
-     * for the reconstructing the element to the same state on a different point of time
-     *
-     * @return stateful objects of the processing element as an array
-     */
-    @Override
-    public Map<String, Object> currentState() {
-        return new HashMap<>();
-    }
+	/**
+	 * Used to collect the serializable state of the processing element, that need to be persisted
+	 * for the reconstructing the element to the same state on a different point of time.
+	 *
+	 * @return stateful objects of the processing element as an array
+	 */
+	@Override
+	public Map<String, Object> currentState() {
+		return new HashMap<>();
+	}
 
-    /**
-     * Used to restore serialized state of the processing element, for reconstructing the element to
-     * the same state as if was on a previous point of time.
-     *
-     * @param state the stateful objects of the element as an array on the same order provided by
-     *              currentState().
-     */
-    @Override
-    public void restoreState(Map<String, Object> state) {
+	/**
+	 * Used to restore serialized state of the processing element, for reconstructing the element to
+	 * the same state as if was on a previous point of time.
+	 *
+	 * @param state the stateful objects of the element as an array on the same order provided by
+	 *              currentState().
+	 */
+	@Override
+	public void restoreState(Map<String, Object> state) {
 
-    }
+	}
 }

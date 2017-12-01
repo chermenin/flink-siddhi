@@ -26,30 +26,33 @@ import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+/**
+ * Utils to work with reflection.
+ */
 public class ReflectionUtils {
 
-    private static URL[] getClasspathUrls() {
-        ArrayList<URL> urls = new ArrayList<>();
-        ClassLoader[] classLoaders = {
-            ReflectionUtils.class.getClassLoader(),
-            Thread.currentThread().getContextClassLoader()
-        };
+	private static URL[] getClasspathUrls() {
+		ArrayList<URL> urls = new ArrayList<>();
+		ClassLoader[] classLoaders = {
+			ReflectionUtils.class.getClassLoader(),
+			Thread.currentThread().getContextClassLoader()
+		};
 
-        for (ClassLoader classLoader : classLoaders) {
-            if (classLoader instanceof URLClassLoader) {
-                urls.addAll(Arrays.asList(((URLClassLoader) classLoader).getURLs()));
-            } else {
-                throw new RuntimeException("classLoader is not an instanceof URLClassLoader");
-            }
-        }
+		for (ClassLoader classLoader : classLoaders) {
+			if (classLoader instanceof URLClassLoader) {
+				urls.addAll(Arrays.asList(((URLClassLoader) classLoader).getURLs()));
+			} else {
+				throw new RuntimeException("classLoader is not an instanceof URLClassLoader");
+			}
+		}
 
-        return urls.toArray(new URL[]{});
-    }
+		return urls.toArray(new URL[]{});
+	}
 
-    public static Class<?>[] getAnnotatedClasses(Class<? extends Annotation> annotationClass) {
-        ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
-        configurationBuilder.addUrls(getClasspathUrls());
-        Reflections reflections = new Reflections(configurationBuilder);
-        return reflections.getTypesAnnotatedWith(annotationClass).toArray(new Class[]{});
-    }
+	public static Class<?>[] getAnnotatedClasses(Class<? extends Annotation> annotationClass) {
+		ConfigurationBuilder configurationBuilder = new ConfigurationBuilder();
+		configurationBuilder.addUrls(getClasspathUrls());
+		Reflections reflections = new Reflections(configurationBuilder);
+		return reflections.getTypesAnnotatedWith(annotationClass).toArray(new Class[]{});
+	}
 }
