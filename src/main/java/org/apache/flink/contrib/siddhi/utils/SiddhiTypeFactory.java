@@ -117,16 +117,13 @@ public class SiddhiTypeFactory {
 		return getTupleTypeInformation(getStreamDefinition(executionPlan, streamId));
 	}
 
+	@SuppressWarnings("unchecked")
 	public static TypeInformation<Map<String, Object>> getMapTypeInformation() {
 		return (TypeInformation<Map<String, Object>>) MAP_TYPE_INFORMATION;
 	}
 
 	public static <F> Attribute.Type getAttributeType(TypeInformation<F> fieldType) {
-		if (JAVA_TO_SIDDHI_TYPE.containsKey(fieldType.getTypeClass())) {
-			return JAVA_TO_SIDDHI_TYPE.get(fieldType.getTypeClass());
-		} else {
-			return Attribute.Type.OBJECT;
-		}
+		return JAVA_TO_SIDDHI_TYPE.getOrDefault(fieldType.getTypeClass(), Attribute.Type.OBJECT);
 	}
 
 	public static Class<?> getJavaType(Attribute.Type attributeType) {

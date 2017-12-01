@@ -42,6 +42,7 @@ public class SiddhiStreamOperator<IN, OUT> extends AbstractSiddhiOperator<Tuple2
 	}
 
 	@Override
+	@SuppressWarnings("unchecked")
 	protected StreamElementSerializer<Tuple2<String, IN>> createStreamElementSerializer(
 		StreamSchema streamSchema, ExecutionConfig executionConfig) {
 		TypeInformation<Tuple2<String, IN>> tuple2TypeInformation = SiddhiTypeFactory

@@ -46,6 +46,7 @@ public class SiddhiStreamSchema<T> extends StreamSchema<T> {
 		super(typeInfo, fieldIndexes, fieldNames);
 	}
 
+	@SuppressWarnings("unchecked")
 	public StreamDefinition getStreamDefinition(String streamId) {
 		StreamDefinition streamDefinition = StreamDefinition.id(streamId);
 		for (int i = 0; i < getFieldNames().length; i++) {

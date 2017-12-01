@@ -68,30 +68,33 @@ public abstract class SiddhiStream {
 	 * Convert DataStream&lt;T&gt; to DataStream&lt;Tuple2&lt;String,T&gt;&gt;. If it's KeyedStream.
 	 * pass through original keySelector
 	 */
+	@SuppressWarnings("unchecked")
 	protected <T> DataStream<Tuple2<String, Object>> convertDataStream(
 		DataStream<T> dataStream, String streamId
 	) {
 		final String streamIdInClosure = streamId;
-		DataStream<Tuple2<String, Object>>
-			resultStream =
+		DataStream<Tuple2<String, Object>> resultStream =
 			dataStream.map(new MapFunction<T, Tuple2<String, Object>>() {
+
 				@Override
-				public Tuple2<String, Object> map(T value) throws Exception {
-					return Tuple2.of(streamIdInClosure, (Object) value);
+				public Tuple2<String, Object> map(T value) {
+					return Tuple2.of(streamIdInClosure, value);
 				}
 			});
+
 		if (dataStream instanceof KeyedStream) {
-			final KeySelector<T, Object>
-				keySelector =
+			final KeySelector<T, Object> keySelector =
 				((KeyedStream<T, Object>) dataStream).getKeySelector();
-			final KeySelector<Tuple2<String, Object>, Object>
-				keySelectorInClosure =
+
+			final KeySelector<Tuple2<String, Object>, Object> keySelectorInClosure =
 				new KeySelector<Tuple2<String, Object>, Object>() {
+
 					@Override
 					public Object getKey(Tuple2<String, Object> value) throws Exception {
 						return keySelector.getKey((T) value.f1);
 					}
 				};
+
 			return resultStream.keyBy(keySelectorInClosure);
 		} else {
 			return resultStream;

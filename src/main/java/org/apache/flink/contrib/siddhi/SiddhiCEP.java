@@ -258,6 +258,7 @@ public class SiddhiCEP {
 	 * @param streamId Siddhi streamId
 	 * @return The source DataStream registered with Siddhi streamId
 	 */
+	@SuppressWarnings("unchecked")
 	public <T> DataStream<T> getDataStream(String streamId) {
 		if (this.dataStreams.containsKey(streamId)) {
 			return (DataStream<T>) this.dataStreams.get(streamId);
