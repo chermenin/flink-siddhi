@@ -36,7 +36,7 @@ under the License.
     <packaging>jar</packaging>
 
     <properties>
-        <siddhi.version>4.0.0-M102</siddhi.version>
+        <siddhi.version>4.0.0-beta9</siddhi.version>
         <scala.binary.version>2.11</scala.binary.version>
     </properties>
 
@@ -48,7 +48,7 @@ under the License.
             <artifactId>siddhi-core</artifactId>
             <version>${siddhi.version}</version>
             <exclusions>
-                <exclusion>  <!-- declare the exclusion here -->
+                <exclusion>
                     <groupId>org.apache.directory.jdbm</groupId>
                     <artifactId>apacheds-jdbm1</artifactId>
                 </exclusion>
@@ -68,7 +68,7 @@ under the License.
             <artifactId>kryo</artifactId>
             <scope>provided</scope>
             <exclusions>
-                <exclusion>  <!-- declare the exclusion here -->
+                <exclusion>
                     <groupId>org.apache.directory.jdbm</groupId>
                     <artifactId>apacheds-jdbm1</artifactId>
                 </exclusion>
@@ -88,6 +88,12 @@ under the License.
             <groupId>org.reflections</groupId>
             <artifactId>reflections</artifactId>
             <scope>compile</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
+			</exclusions>
         </dependency>
 
         <!-- test dependencies -->
@@ -98,7 +104,7 @@ under the License.
             <type>test-jar</type>
             <scope>test</scope>
             <exclusions>
-                <exclusion>  <!-- declare the exclusion here -->
+                <exclusion>
                     <groupId>org.apache.directory.jdbm</groupId>
                     <artifactId>apacheds-jdbm1</artifactId>
                 </exclusion>
@@ -110,10 +116,14 @@ under the License.
             <version>${project.version}</version>
             <scope>test</scope>
             <exclusions>
-                <exclusion>  <!-- declare the exclusion here -->
+                <exclusion>
                     <groupId>org.apache.directory.jdbm</groupId>
                     <artifactId>apacheds-jdbm1</artifactId>
                 </exclusion>
+				<exclusion>
+					<groupId>com.google.guava</groupId>
+					<artifactId>guava</artifactId>
+				</exclusion>
             </exclusions>
         </dependency>
         <dependency>
@@ -121,7 +131,7 @@ under the License.
             <artifactId>flink-scala_${scala.binary.version}</artifactId>
             <version>${project.version}</version>
             <exclusions>
-                <exclusion>  <!-- declare the exclusion here -->
+                <exclusion>
                     <groupId>org.apache.directory.jdbm</groupId>
                     <artifactId>apacheds-jdbm1</artifactId>
                 </exclusion>
@@ -130,8 +140,18 @@ under the License.
         <dependency>
             <groupId>org.wso2.extension.siddhi.execution.string</groupId>
             <artifactId>siddhi-execution-string</artifactId>
-            <version>4.0.4</version>
+            <version>4.0.7</version>
             <scope>test</scope>
+			<exclusions>
+				<exclusion>
+					<groupId>org.wso2.siddhi</groupId>
+					<artifactId>siddhi-query-api</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.wso2.siddhi</groupId>
+					<artifactId>siddhi-core</artifactId>
+				</exclusion>
+			</exclusions>
         </dependency>
     </dependencies>
 
